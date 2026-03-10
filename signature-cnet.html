@@ -88,8 +88,10 @@ var c = null; // données du contrat
 var dataParam = getParam('data');
 if (dataParam) {
   try {
-    c = JSON.parse(atob(dataParam));
-  } catch(e) { c = null; }
+    c = JSON.parse(decodeURIComponent(escape(atob(dataParam))));
+  } catch(e) {
+    try { c = JSON.parse(atob(dataParam)); } catch(e2) { c = null; }
+  }
 }
 
 // Fallback: chercher par numéro dans localStorage
@@ -403,279 +405,219 @@ function finaliser() {
   var v1=Math.round(tot/3*100)/100, v2=v1, v3=Math.round((tot-v1-v2)*100)/100;
 
   var doc = new window.jspdf.jsPDF({unit:'mm',format:'a4'});
-  var W=210, M=18;
+  var W=210, M=14, CW=W-M*2;
 
-  function hdr() {
-    doc.setFillColor(30,77,26); doc.rect(0,0,W,46,'F');
-    doc.setFillColor(200,168,75); doc.rect(0,44,W,3,'F');
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(18);
-    doc.text('ENTRETIEN C-NET',M,17);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(168,213,162);
-    doc.text('Entretien paysager - Quebec',M,25);
-    doc.text('418 440-6303  -  dereck@entretiencnet.com  -  entretiencnet.com',M,32);
-    doc.setFillColor(200,168,75); doc.rect(W-M-52,11,52,13,'F');
-    doc.setTextColor(26,16,0); doc.setFont('helvetica','bold'); doc.setFontSize(10);
-    doc.text('CONTRAT SIGNE',W-M-26,19,{align:'center'});
-    doc.setTextColor(200,168,75); doc.setFontSize(8.5);
-    doc.text(c.num||'',W-M,31,{align:'right'});
-    doc.setFont('helvetica','normal'); doc.setTextColor(168,213,162); doc.setFontSize(7.5);
-    doc.text('Signe le : '+fmtD(today),W-M,38,{align:'right'});
-  }
+  // ── HEADER compact 36mm ──
+  doc.setFillColor(30,77,26); doc.rect(0,0,W,36,'F');
+  doc.setFillColor(200,168,75); doc.rect(0,34,W,2,'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text('ENTRETIEN C-NET',M,13);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(168,213,162);
+  doc.text('Entretien paysager - Quebec',M,20);
+  doc.text('418 440-6303  -  dereck@entretiencnet.com  -  entretiencnet.com',M,26);
+  doc.setFillColor(200,168,75); doc.rect(W-M-46,8,46,11,'F');
+  doc.setTextColor(26,16,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+  doc.text('CONTRAT SIGNE',W-M-23,15,{align:'center'});
+  doc.setTextColor(200,168,75); doc.setFontSize(7.5);
+  doc.text(c.num||'',W-M,24,{align:'right'});
+  doc.setFont('helvetica','normal'); doc.setTextColor(168,213,162); doc.setFontSize(7);
+  doc.text('Signe le : '+fmtD(today),W-M,30,{align:'right'});
 
-  function ftr(page,total) {
-    doc.setFillColor(30,77,26); doc.rect(0,279,W,18,'F');
-    doc.setTextColor(168,213,162); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
-    doc.text('Entretien C-Net  -  '+(c.num||'')+'  -  Page '+page+' sur '+total,W/2,286,{align:'center'});
+  // ── PIED DE PAGE ──
+  function ftr() {
+    doc.setFillColor(30,77,26); doc.rect(0,281,W,16,'F');
+    doc.setTextColor(168,213,162); doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('Entretien C-Net  -  '+(c.num||''),W/2,287,{align:'center'});
     doc.setTextColor(200,168,75);
-    doc.text('418 440-6303  -  dereck@entretiencnet.com  -  entretiencnet.com',W/2,292,{align:'center'});
+    doc.text('418 440-6303  -  dereck@entretiencnet.com  -  entretiencnet.com',W/2,293,{align:'center'});
   }
 
-  function stitle(txt,y) {
-    doc.setTextColor(30,77,26); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
-    doc.text(txt,M,y);
-    doc.setDrawColor(200,168,75); doc.line(M,y+1.5,M+txt.length*2.2,y+1.5);
-    return y+9;
-  }
+  var y = 42; // départ après header
 
-  // PAGE 1
-  hdr();
-  var y=55, hw=(W-M*2)/2-4;
+  // ── PARTIES (2 colonnes côte à côte, compact) ──
+  var hw = CW/2-3;
+  doc.setFillColor(245,250,244); doc.rect(M,y,hw,20,'F');
+  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7);
+  doc.text('PRESTATAIRE',M+2,y+5);
+  doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
+  doc.text('Entretien C-Net / Dereck - 418 440-6303',M+2,y+10);
+  doc.text('dereck@entretiencnet.com',M+2,y+16);
+  var cx=M+hw+6;
+  doc.setFillColor(245,250,244); doc.rect(cx,y,hw,20,'F');
+  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7);
+  doc.text('CLIENT',cx+2,y+5);
+  doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
+  doc.text(c.nom+(c.tel?' - '+c.tel:''),cx+2,y+10);
+  if(c.email) doc.text(c.email,cx+2,y+16);
+  y+=22;
 
-  y=stitle('ENTRE LES PARTIES',y);
-  doc.setFillColor(245,250,244); doc.rect(M,y,hw,26,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(8);
-  doc.text('PRESTATAIRE',M+3,y+6);
-  doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(8.5);
-  doc.text('Entretien C-Net',M+3,y+12);
-  doc.text('Dereck - 418 440-6303',M+3,y+18);
-  doc.text('dereck@entretiencnet.com',M+3,y+24);
-  var cx=M+hw+8;
-  doc.setFillColor(245,250,244); doc.rect(cx,y,hw,26,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(8);
-  doc.text('CLIENT',cx+3,y+6);
-  doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(8.5);
-  doc.text(c.nom,cx+3,y+12);
-  if(c.tel) doc.text(c.tel,cx+3,y+18);
-  if(c.email) doc.text(c.email,cx+3,y+(c.tel?24:18));
-  y+=32;
-
-  doc.setFillColor(240,247,238); doc.rect(M,y,W-M*2,9,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(8); doc.text('ADRESSE DES TRAVAUX',M+3,y+6);
-  doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.text(c.adresse,W-M-3,y+6,{align:'right'}); y+=11;
-  doc.setFillColor(245,250,244); doc.rect(M,y,W-M*2,9,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.text('TYPE DE CLIENT',M+3,y+6);
-  doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.text(c.type==='commercial'?'Commercial':'Residentiel',W-M-3,y+6,{align:'right'}); y+=11;
-  doc.setFillColor(240,247,238); doc.rect(M,y,W-M*2,9,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.text('PERIODE DU CONTRAT',M+3,y+6);
-  doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.text(fmtD(c.debut)+' au '+fmtD(c.fin)+' ('+c.duree+' an'+(c.duree>1?'s':'')+')',W-M-3,y+6,{align:'right'}); y+=13;
-
-  y=stitle('SERVICES INCLUS',y);
-  var sw=(W-M*2)/2-4, col=0;
-  (c.services||[]).forEach(function(s,i){
-    var bx=col===0?M:M+sw+8;
-    doc.setFillColor(i%2===0?247:255,i%2===0?252:255,i%2===0?245:255);
-    doc.rect(bx,y-3,sw,8,'F');
-    doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(8);
-    doc.text('- '+s,bx+3,y+2);
-    col++; if(col===2){col=0;y+=8;}
+  // ── INFOS (3 lignes compactes) ──
+  var rows=[
+    ['ADRESSE DES TRAVAUX', c.adresse||''],
+    ['TYPE DE CLIENT', c.type==='commercial'?'Commercial':'Residentiel'],
+    ['PERIODE DU CONTRAT', fmtD(c.debut)+' au '+fmtD(c.fin)+' ('+c.duree+' an'+(c.duree>1?'s':'')+')']
+  ];
+  rows.forEach(function(r,i){
+    doc.setFillColor(i%2===0?240:247,i%2===0?247:252,i%2===0?238:245);
+    doc.rect(M,y,CW,7,'F');
+    doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7);
+    doc.text(r[0],M+2,y+5);
+    doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
+    doc.text(r[1],W-M-2,y+5,{align:'right'});
+    y+=8;
   });
-  if(col===1)y+=8;
+  y+=3;
+
+  // ── SERVICES ──
+  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7.5);
+  doc.text('SERVICES INCLUS',M,y);
+  doc.setDrawColor(200,168,75); doc.line(M,y+1.5,M+34,y+1.5);
   y+=6;
+  var svcs = c.services||[];
+  var col=0, sw2=CW/2-3;
+  svcs.forEach(function(s,i){
+    var snom=(typeof s==='object')?(s.nom||s.name||s.label||'Service'):s;
+    var snomT=snom.length>38?snom.slice(0,36)+'...':snom;
+    var bx=col===0?M:M+sw2+6;
+    doc.setFillColor(i%2===0?247:255,i%2===0?252:255,i%2===0?245:255);
+    doc.rect(bx,y-2,sw2,7,'F');
+    doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
+    doc.text('✓ '+snomT,bx+2,y+3);
+    col++; if(col===2){col=0;y+=7;}
+  });
+  if(col===1)y+=7;
+  y+=4;
 
-  doc.setFillColor(30,77,26); doc.rect(M,y,W-M*2,11,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setFontSize(10);
-  doc.text('MONTANT TOTAL',M+4,y+7);
-  doc.text(c.montant>0?fmt2(c.montant)+' $':'A confirmer',W-M-4,y+7,{align:'right'});
-  y+=13; y+=4;
+  // ── MONTANT ──
+  doc.setFillColor(30,77,26); doc.rect(M,y,CW,9,'F');
+  doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setFontSize(9);
+  doc.text('MONTANT TOTAL (avant taxes)',M+3,y+6);
+  doc.text(fmt2(c.montant||0)+' $',W-M-3,y+6,{align:'right'});
+  y+=11;
 
-  y=stitle('MODALITES DE PAIEMENT',y);
-  var mLbl=c.modePaiement==='interac'?'Virement Interac - dereck@entretiencnet.com':'Chèque - à l\'ordre d\'Entretien C-Net';
-  var modal = c.modalitePaiement;
+  // ── PAIEMENT ──
+  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7.5);
+  doc.text('MODALITES DE PAIEMENT',M,y);
+  doc.setDrawColor(200,168,75); doc.line(M,y+1.5,M+44,y+1.5);
+  y+=6;
+  var mLbl=c.modePaiement==='interac'?'Virement Interac - dereck@entretiencnet.com':'Cheque - a l\'ordre d\'Entretien C-Net';
+  var modal=c.modalitePaiement;
   if(modal==='3v'||modal==='3versements'){
-    doc.setFillColor(255,248,225); doc.rect(M,y-2,W-M*2,8,'F');
-    doc.setFont('helvetica','bold'); doc.setTextColor(140,100,10); doc.setFontSize(8);
-    doc.text('3 versements - '+mLbl,M+3,y+3); y+=10;
-    [{l:'1er mai 2026',v:v1},{l:'1er juillet 2026',v:v2},{l:'1er sept. 2026',v:v3}].forEach(function(vv,i){
-      doc.setFillColor(i%2===0?247:255,i%2===0?252:255,i%2===0?245:255); doc.rect(M,y-2,W-M*2,8,'F');
-      doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(8);
-      doc.text((i+1)+'e versement - '+vv.l,M+3,y+3);
-      doc.setFont('helvetica','bold'); doc.text(fmt2(vv.v)+' $',W-M-3,y+3,{align:'right'}); y+=8;
+    doc.setFillColor(255,248,225); doc.rect(M,y,CW,7,'F');
+    doc.setFont('helvetica','bold'); doc.setTextColor(140,100,10); doc.setFontSize(7.5);
+    doc.text('3 versements  -  '+mLbl,M+2,y+5); y+=8;
+    [{l:'1er mai',v:v1},{l:'1er juillet',v:v2},{l:'1er sept.',v:v3}].forEach(function(vv,i){
+      doc.setFillColor(i%2===0?247:255,i%2===0?252:255,i%2===0?245:255);
+      doc.rect(M,y,CW,6,'F');
+      doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
+      doc.text((i+1)+'e versement - '+vv.l+' 2026',M+2,y+4);
+      doc.setFont('helvetica','bold'); doc.text(fmt2(vv.v)+' $',W-M-2,y+4,{align:'right'}); y+=7;
     });
-    doc.setFillColor(30,77,26); doc.rect(M,y,W-M*2,10,'F');
-    doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setFontSize(9);
-    doc.text('TOTAL TAXES INCLUSES',M+3,y+7); doc.text(fmt2(tot)+' $',W-M-3,y+7,{align:'right'}); y+=13;
+    doc.setFillColor(30,77,26); doc.rect(M,y,CW,8,'F');
+    doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setFontSize(8.5);
+    doc.text('TOTAL TAXES INCLUSES (TPS+TVQ)',M+3,y+5.5);
+    doc.text(fmt2(tot)+' $',W-M-3,y+5.5,{align:'right'}); y+=10;
   } else {
-    doc.setFillColor(237,247,234); doc.rect(M,y-2,W-M*2,10,'F');
-    doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(8);
-    doc.text('Paiement unique - '+mLbl,M+3,y+4);
-    doc.setFont('helvetica','bold'); doc.text(fmt2(c.montant)+' $',W-M-3,y+4,{align:'right'});
-    y+=12;
+    doc.setFillColor(237,247,234); doc.rect(M,y,CW,8,'F');
+    doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
+    doc.text('Paiement unique  -  '+mLbl,M+2,y+5);
+    doc.setFillColor(30,77,26); doc.rect(M,y+9,CW,8,'F');
+    doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setFontSize(8.5);
+    doc.text('TOTAL TAXES INCLUSES (TPS+TVQ)',M+3,y+14.5);
+    doc.text(fmt2(tot)+' $',W-M-3,y+14.5,{align:'right'}); y+=19;
   }
   y+=4;
 
-  y=stitle('SIGNATURES',y);
-  var sigW=(W-M*2)/2-6, sigX=M+sigW+12;
-  doc.setFillColor(245,250,244); doc.rect(M,y,sigW,38,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(8);
-  doc.text('ENTRETIEN C-NET - Dereck',M+3,y+7);
-  doc.setDrawColor(180,210,175); doc.line(M+3,y+30,M+sigW-3,y+30);
-  doc.setFont('helvetica','normal'); doc.setTextColor(100,130,95); doc.setFontSize(7);
-  doc.text('Signature du prestataire',M+3,y+35);
-  doc.setFillColor(245,250,244); doc.rect(sigX,y,sigW,38,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(8);
-  doc.text('CLIENT - '+c.nom,sigX+3,y+7);
-  if (sigData) {
-    try { doc.addImage(sigData,'PNG',sigX+3,y+9,sigW-8,18); } catch(e){}
-  }
-  doc.setDrawColor(180,210,175); doc.line(sigX+3,y+30,sigX+sigW-3,y+30);
-  doc.setFont('helvetica','normal'); doc.setTextColor(100,130,95); doc.setFontSize(7);
-  doc.text('Signe electroniquement le '+fmtD(today),sigX+3,y+35);
-  ftr(1,2);
+  // ── SIGNATURES ──
+  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7.5);
+  doc.text('SIGNATURES',M,y);
+  doc.setDrawColor(200,168,75); doc.line(M,y+1.5,M+22,y+1.5);
+  y+=5;
 
-  // PAGE 2
-  doc.addPage(); hdr(); y=55;
-  y=stitle('CONDITIONS GENERALES DU CONTRAT',y); y+=2;
+  var sigW=CW/2-4, sigX=M+sigW+8, sigH=42;
+
+  // Boite entrepreneur
+  doc.setFillColor(245,250,244); doc.rect(M,y,sigW,sigH,'F');
+  doc.setDrawColor(180,210,175); doc.setLineWidth(0.3); doc.rect(M,y,sigW,sigH);
+  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7.5);
+  doc.text('ENTRETIEN C-NET - Dereck',M+3,y+6);
+  doc.setDrawColor(130,170,125); doc.setLineWidth(0.5);
+  doc.line(M+3,y+34,M+sigW-3,y+34);
+  doc.setFont('helvetica','normal'); doc.setTextColor(100,130,95); doc.setFontSize(6.5);
+  doc.text('Signature du prestataire',M+3,y+39);
+
+  // Boite client
+  doc.setFillColor(245,250,244); doc.rect(sigX,y,sigW,sigH,'F');
+  doc.setDrawColor(180,210,175); doc.setLineWidth(0.3); doc.rect(sigX,y,sigW,sigH);
+  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7.5);
+  doc.text('CLIENT - '+c.nom,sigX+3,y+6);
+  if (sigData) {
+    try { doc.addImage(sigData,'PNG',sigX+3,y+8,sigW-8,20); } catch(e){}
+  }
+  doc.setDrawColor(130,170,125); doc.setLineWidth(0.5);
+  doc.line(sigX+3,y+34,sigX+sigW-3,y+34);
+  doc.setFont('helvetica','normal'); doc.setTextColor(100,130,95); doc.setFontSize(6.5);
+  doc.text('Signe electroniquement le '+fmtD(today),sigX+3,y+39);
+  y+=sigH+3;
+
+  // ── CLAUSE ──
+  doc.setFillColor(235,248,232); doc.rect(M,y,CW,8,'F');
+  doc.setDrawColor(30,77,26); doc.setLineWidth(0.3); doc.rect(M,y,CW,8);
+  doc.setFillColor(30,77,26); doc.rect(M,y,2.5,8,'F');
+  doc.setFont('helvetica','italic'); doc.setFontSize(6.5); doc.setTextColor(40,80,35);
+  doc.text('En signant, le client confirme avoir lu et accepte les services, les prix et les conditions du contrat.',M+5,y+5.5);
+  y+=10;
+
+  ftr();
+
+  // ── PAGE 2 CONDITIONS ──
+  doc.addPage();
+  doc.setFillColor(30,77,26); doc.rect(0,0,W,36,'F');
+  doc.setFillColor(200,168,75); doc.rect(0,34,W,2,'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text('ENTRETIEN C-NET',M,13);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(168,213,162);
+  doc.text('Entretien paysager - Quebec',M,20);
+  doc.text('418 440-6303  -  dereck@entretiencnet.com  -  entretiencnet.com',M,26);
+  doc.setFillColor(200,168,75); doc.rect(W-M-46,8,46,11,'F');
+  doc.setTextColor(26,16,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+  doc.text('CONTRAT SIGNE',W-M-23,15,{align:'center'});
+  doc.setTextColor(200,168,75); doc.setFontSize(7.5);
+  doc.text(c.num||'',W-M,24,{align:'right'});
+  y=44;
+  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(9);
+  doc.text('CONDITIONS GENERALES DU CONTRAT',M,y); y+=3;
+  doc.setDrawColor(200,168,75); doc.line(M,y,M+80,y); y+=7;
   var clauses=[
     {t:'1. Objet du contrat',x:'Entretien C-Net s engage a fournir les services d entretien paysager decrits dans ce contrat a l adresse indiquee, selon les modalites convenues. Les travaux seront executes de maniere professionnelle.'},
     {t:'2. Periode de service',x:'La saison de tonte s etend du 15 mai au 15 octobre. Les services additionnels sont effectues aux dates convenues. Les dates peuvent etre ajustees en cas de conditions meteorologiques exceptionnelles.'},
-    {t:'3. Prix et paiement',x:'Le montant est fixe tel qu indique. Les taxes (TPS 5% et TVQ 9.975%) s ajoutent. Tout solde impaye apres 30 jours entraine des frais de 2% par mois. Frais de 45 $ pour tout chèque retourné.'},
+    {t:'3. Prix et paiement',x:'Le montant est fixe tel qu indique. Les taxes (TPS 5% et TVQ 9.975%) s ajoutent. Tout solde impaye apres 30 jours entraine des frais de 2% par mois. Frais de 45 $ pour tout cheque retourne.'},
     {t:'4. Annulation et resiliation',x:'Toute annulation doit etre transmise par ecrit avec un preavis de 30 jours. Des frais de 15% peuvent s appliquer. En cours de saison, le client est redevable des services deja rendus.'},
     {t:'5. Responsabilites et assurances',x:'Entretien C-Net detient une assurance responsabilite civile. Le client doit signaler tout obstacle, cable ou danger avant les travaux. Entretien C-Net ne peut etre responsable des elements non signales.'},
-    {t:'6. Renouvellement du contrat',x:'Sauf avis contraire ecrit 30 jours avant l échéance, ce contrat est reconduit automatiquement aux memes conditions. Pour les contrats 2 ou 3 ans, le prix est garanti sans augmentation.'},
+    {t:'6. Renouvellement du contrat',x:'Sauf avis contraire ecrit 30 jours avant l echeance, ce contrat est reconduit automatiquement aux memes conditions. Pour les contrats 2 ou 3 ans, le prix est garanti sans augmentation.'},
     {t:'7. Conditions meteorologiques',x:'Les services peuvent etre reportes sans penalite en cas de conditions rendant les travaux impossibles. Entretien C-Net s engage a effectuer les travaux reportes dans les meilleurs delais.'},
     {t:'8. Acces aux proprietes',x:'Le client assure un acces libre et securitaire aux zones de travail. Tout animal doit etre tenu a l ecart. Un acces bloque sera considere comme une visite effectuee et facture.'},
   ];
-  clauses.forEach(function(cl){
-    var lines=doc.splitTextToSize(cl.x,W-M*2-10);
-    var bH=7+lines.length*5+5;
-    doc.setFillColor(247,252,245); doc.rect(M,y,W-M*2,bH,'F');
-    doc.setFillColor(30,77,26); doc.rect(M,y,3,bH,'F');
-    doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(8.5);
-    doc.text(cl.t,M+7,y+6);
-    doc.setFont('helvetica','normal'); doc.setTextColor(50,80,45); doc.setFontSize(8);
-    doc.text(lines,M+7,y+12);
-    y+=bH+4;
+  clauses.forEach(function(cl,idx){
+    var lines=doc.splitTextToSize(cl.x,CW-10);
+    var bH=6+lines.length*4.5+5;
+    doc.setFillColor(idx%2===0?247:242,idx%2===0?252:249,idx%2===0?245:240);
+    doc.rect(M,y,CW,bH,'F');
+    doc.setFillColor(30,77,26); doc.rect(M,y,2.5,bH,'F');
+    doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(8);
+    doc.text(cl.t,M+6,y+5.5);
+    doc.setFont('helvetica','normal'); doc.setTextColor(50,80,45); doc.setFontSize(7.5);
+    doc.text(lines,M+6,y+11);
+    y+=bH+3;
   });
-  y+=4;
-  doc.setFillColor(237,247,234); doc.rect(M,y,W-M*2,14,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(8);
-  doc.text('En signant ce contrat, le client reconnait avoir lu et accepte toutes les conditions ci-dessus.',M+3,y+6);
-  doc.text('Signature electronique realisee le '+fmtD(today)+' par '+c.nom+'.',M+3,y+12);
-  ftr(2,2);
+  // Note signature bas de page 2
+  doc.setFillColor(240,247,238); doc.rect(M,y,CW,8,'F');
+  doc.setFont('helvetica','italic'); doc.setTextColor(60,100,55); doc.setFontSize(7);
+  doc.text('Signature electronique realisee le '+fmtD(today)+' par '+c.nom+'.',M+3,y+5.5);
+  ftr();
 
-  // ── SAUVEGARDER DANS LOCALSTORAGE ──────────────────────────────────────────
-  try {
-    var contrats = JSON.parse(localStorage.getItem('cnet-contrats')||'[]');
-    var idx = contrats.findIndex(function(x){ return x.num===c.num; });
-    var contratUpdate = {
-      signe: true,
-      dateSig: today,
-      modalitePaiement: c.modalitePaiement,
-      modePaiement: c.modePaiement
-    };
-    // Si 1 versement unique : ajouter paiementUnique et vider versements
-    if (c.modalitePaiement === '1v') {
-      var tpsSig = Math.round((c.montant||0)*0.05*100)/100;
-      var tvqSig = Math.round((c.montant||0)*0.09975*100)/100;
-      var totSig = Math.round(((c.montant||0)+tpsSig+tvqSig)*100)/100;
-      contratUpdate.paiementUnique = { montant: totSig, recu: false, date: today };
-      contratUpdate.versements = []; // vider les versements 3v
-    }
-    if (idx !== -1) {
-      Object.assign(contrats[idx], contratUpdate);
-    } else {
-      Object.assign(c, contratUpdate);
-      contrats.push(c);
-    }
-    localStorage.setItem('cnet-contrats', JSON.stringify(contrats));
-
-    // Mettre à jour statut client + mode de paiement
-    var clients = JSON.parse(localStorage.getItem('cnet-clients')||'[]');
-    var nomN = (c.nom||'').toLowerCase().trim();
-    var telN = (c.tel||'').replace(/\D/g,'');
-    var ic = clients.findIndex(function(cl){
-      return (cl.nom&&cl.nom.toLowerCase().trim()===nomN)||(telN&&cl.tel&&cl.tel.replace(/\D/g,'')===telN);
-    });
-    var clientUpdate = {
-      statut: 'acceptee',
-      services: c.services||[],
-      montant: c.montant,
-      contrat: c.duree,
-      dateSig: today,
-      modalitePaiement: c.modalitePaiement,
-      modePaiement: c.modePaiement,
-      contratNum: c.num
-    };
-    if (ic !== -1) {
-      Object.assign(clients[ic], clientUpdate);
-    } else {
-      clients.push(Object.assign({nom:c.nom,tel:c.tel||'',email:c.email||'',adresse:c.adresse||'',type:c.type,date:today,notes:'Contrat '+c.num+' signé le '+today}, clientUpdate));
-    }
-    localStorage.setItem('cnet-clients', JSON.stringify(clients));
-  } catch(e) {}
-
-  // Telecharger le PDF signé
-  var slug = c.nom.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  doc.save('contrat-signe-cnet-'+slug+'-'+(c.num||'')+'.pdf');
-
-  // ── NOTIFIER DERECK PAR EMAIL ────────────────────────────────────────────
-  // Construire le résumé du contrat signé
-  var svcsListe = (c.services||[]).join(', ') || 'Voir contrat';
-  var montantFmt = parseFloat(c.montant||0).toFixed(2);
-  // URL de retour vers contrats-cnet.html sur l'ordi de Dereck
-  var retourBase = getParam('retour') || 'contrats-cnet.html';
-  var urlContrats = retourBase + (retourBase.includes('?') ? '&' : '?') + 'action=signe&contrat=' + encodeURIComponent(c.num||'');
-
-  var versLabel = c.modalitePaiement === '1v' ? '1 versement unique de '+fmt2(tot)+' $' : '3 versements ('+fmt2(v1)+' $ • '+fmt2(v2)+' $ • '+fmt2(v3)+' $)';
-  var modeLabel = c.modePaiement === 'interac' ? 'Virement Interac' : 'Chèque postdaté';
-
-  var emailCorps =
-    'Bonjour Dereck,\n\n' +
-    '✅ Le contrat ' + (c.num||'') + ' a été signé électroniquement par ' + (c.nom||'') + '.\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'CLIENT : ' + (c.nom||'') + '\n' +
-    'TÉL : ' + (c.tel||'-') + '\n' +
-    'COURRIEL : ' + (c.email||'-') + '\n' +
-    'ADRESSE : ' + (c.adresse||'-') + '\n' +
-    'SERVICES : ' + svcsListe + '\n' +
-    'MONTANT : ' + montantFmt + ' $\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    '💳 MODE DE PAIEMENT CHOISI PAR LE CLIENT :\n' +
-    '   Versements : ' + versLabel + '\n' +
-    '   Moyen : ' + modeLabel + '\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'DATE DE SIGNATURE : ' + today + '\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
-    '🔗 CLIQUE ICI POUR CONFIRMER DANS TON SYSTÈME :\n' +
-    urlContrats + '\n\n' +
-    '(Ouvre ce lien sur ton ordi — le contrat sera marqué signé automatiquement)\n\n' +
-    'Entretien C-Net — Système automatique';
-
-  // Ouvrir le client email avec la notification pré-remplie
-  var mailtoLien = 'mailto:dereck@entretiencnet.com' +
-    '?subject=' + encodeURIComponent('✅ Contrat signé — ' + (c.nom||'') + ' (' + (c.num||'') + ')') +
-    '&body=' + encodeURIComponent(emailCorps);
-
-  // Afficher le bouton d'envoi dans la page de succès (voir ci-dessous)
-  var mailtoLienFinal = mailtoLien;
-
-  // Succes
-  wrap.innerHTML =
-    '<div class="card succes"><div class="succes-icon">&#127881;</div><h2>Contrat signé !</h2>' +
-    '<p>Merci <strong>'+c.nom+'</strong> !<br>Ton contrat <strong>'+(c.num||'')+'</strong> a été signé électroniquement le <strong>'+fmtD(today)+'</strong>.</p>' +
-    '<p style="margin-top:10px;font-size:13px;color:#5a7a52;">📄 Le PDF signé a été téléchargé — conserve-le pour tes dossiers.</p>' +
-    '<div style="margin-top:16px;padding:14px;background:#f0fdf4;border-radius:12px;border:1.5px solid #86efac;">' +
-      '<div style="font-size:12px;font-weight:700;color:#166534;margin-bottom:8px">📬 Envoyer la confirmation à Entretien C-Net</div>' +
-      '<div style="font-size:11px;color:#5a7a52;margin-bottom:10px">Clique ci-dessous pour envoyer automatiquement un courriel de confirmation à Dereck.</div>' +
-      '<a href="'+mailtoLienFinal+'" style="display:block;text-align:center;padding:12px;background:#1e4d1a;color:white;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;">📧 Envoyer la confirmation par courriel</a>' +
-    '</div>' +
-    '</div>' +
-    '<div class="card" style="text-align:left"><div class="card-title">Services confirmes pour la saison</div>' +
-    (c.services||[]).map(function(s){ var nom=(typeof s==='object')?(s.nom||s.name||s.label||'Service'):s; return '<div class="svc-item">'+nom+'</div>'; }).join('') +
-    '<div style="margin-top:12px;background:#f5faf4;border-radius:10px;padding:12px"><div style="font-size:11px;color:#7a9e74;margin-bottom:4px">Montant total (taxes incluses)</div><div style="font-size:20px;font-weight:800;color:#1e4d1a">'+fmt2(tot)+' $</div><div style="font-size:11px;color:#7a9e74;margin-top:2px">Avant taxes : '+fmt2(c.montant||0)+' $</div></div></div>' +
-    '<div class="card" style="text-align:center"><div style="font-size:15px;font-weight:700;color:#1e4d1a">&#128222; 418 440-6303</div><div style="font-size:13px;color:#5a7a52;margin-top:4px">dereck@entretiencnet.com &nbsp;·&nbsp; entretiencnet.com</div></div>';
+  doc.save('contrat-signe-cnet-'+(c.nom||'client').replace(/\s+/g,'-')+'-'+(c.num||'')+'.pdf');
 }
-
 // ── UTILITAIRES ─────────────────────────────────────────────────────────────
 function fmt2(n){ return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0'); }
 function fmtD(d){
