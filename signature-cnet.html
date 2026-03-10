@@ -119,7 +119,8 @@ function afficher() {
   var v1=Math.round(tot/3*100)/100, v2=v1, v3=Math.round((tot-v1-v2)*100)/100;
 
   var svcsHTML = (c.services||[]).map(function(s){
-    return '<div class="svc-item">'+s+'</div>';
+    var nom = (typeof s === 'object') ? (s.nom || s.name || s.label || JSON.stringify(s)) : s;
+    return '<div class="svc-item">'+nom+'</div>';
   }).join('') || '<div style="color:#7a9e74;font-size:13px">Services selon la soumission.</div>';
 
   // Choix de versement et mode de paiement — sélectionné par le client
@@ -141,7 +142,7 @@ function afficher() {
           '<div class="info-box full"><div class="info-lbl">Adresse des travaux</div><div class="info-val">'+c.adresse+'</div></div>' +
           '<div class="info-box"><div class="info-lbl">Début</div><div class="info-val">'+fmtD(c.debut)+'</div></div>' +
           '<div class="info-box"><div class="info-lbl">Fin</div><div class="info-val">'+fmtD(c.fin)+' ('+c.duree+' an'+(c.duree>1?'s':'')+')</div></div>' +
-          '<div class="info-box full"><div class="info-lbl">Montant (avant taxes)</div><div class="info-val grand">'+fmt2(c.montant||0)+' $</div></div>' +
+          '<div class="info-box full"><div class="info-lbl">Montant total (taxes incluses)</div><div class="info-val grand">'+fmt2(tot)+' $</div><div style="font-size:11px;color:#7a9e74;margin-top:2px">Avant taxes : '+fmt2(c.montant||0)+' $ &nbsp;•&nbsp; TPS : '+fmt2(tps)+' $ &nbsp;•&nbsp; TVQ : '+fmt2(tvq)+' $</div></div>' +
         '</div>' +
       '</div>' +
       '<div class="card"><div class="card-title">Services inclus</div>'+svcsHTML+'</div>' +
@@ -670,8 +671,8 @@ function finaliser() {
     '</div>' +
     '</div>' +
     '<div class="card" style="text-align:left"><div class="card-title">Services confirmes pour la saison</div>' +
-    (c.services||[]).map(function(s){ return '<div class="svc-item">'+s+'</div>'; }).join('') +
-    '<div style="margin-top:12px;background:#f5faf4;border-radius:10px;padding:12px"><div style="font-size:11px;color:#7a9e74;margin-bottom:4px">Montant confirme</div><div style="font-size:20px;font-weight:800;color:#1e4d1a">'+fmt2(c.montant||0)+' $</div></div></div>' +
+    (c.services||[]).map(function(s){ var nom=(typeof s==='object')?(s.nom||s.name||s.label||'Service'):s; return '<div class="svc-item">'+nom+'</div>'; }).join('') +
+    '<div style="margin-top:12px;background:#f5faf4;border-radius:10px;padding:12px"><div style="font-size:11px;color:#7a9e74;margin-bottom:4px">Montant total (taxes incluses)</div><div style="font-size:20px;font-weight:800;color:#1e4d1a">'+fmt2(tot)+' $</div><div style="font-size:11px;color:#7a9e74;margin-top:2px">Avant taxes : '+fmt2(c.montant||0)+' $</div></div></div>' +
     '<div class="card" style="text-align:center"><div style="font-size:15px;font-weight:700;color:#1e4d1a">&#128222; 418 440-6303</div><div style="font-size:13px;color:#5a7a52;margin-top:4px">dereck@entretiencnet.com &nbsp;·&nbsp; entretiencnet.com</div></div>';
 }
 
