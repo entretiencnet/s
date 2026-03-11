@@ -38,6 +38,16 @@ body{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-seri
 .sig-zone.drawing{border-color:#1e4d1a;border-style:solid}
 .sig-lbl{text-align:center;padding:10px;font-size:11px;color:#b0c8aa;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 canvas{display:block;width:100%;height:160px;cursor:crosshair;touch-action:none}
+.loi25-box{background:#fffbeb;border:1.5px solid #fbbf24;border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.loi25-box h3{font-size:13px;font-weight:700;color:#92400e;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.loi25-box p{font-size:11.5px;color:#78350f;line-height:1.6;margin-bottom:8px}
+.loi25-box .cb-row{margin-top:10px}
+.alt-confirm-box{background:#f0fdf4;border:1.5px solid #86efac;border-radius:14px;padding:18px;margin-top:14px}
+.alt-confirm-box h3{font-size:13px;font-weight:700;color:#166534;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.alt-confirm-box p{font-size:12px;color:#14532d;line-height:1.6;margin-bottom:10px}
+.msg-modele{background:white;border:1.5px solid #86efac;border-radius:10px;padding:12px 14px;font-size:12px;color:#1a3317;font-style:italic;line-height:1.7;margin:8px 0}
+.msg-modele strong{font-style:normal;color:#166534}
+.copy-btn{font-size:11px;background:#166534;color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:700;margin-top:6px}
 .sig-actions{display:flex;gap:8px;margin-top:10px}
 .sbtn{padding:9px 16px;border:1.5px solid #dde8d9;border-radius:9px;background:white;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;font-size:12px;font-weight:600;cursor:pointer;color:#5a7a52;transition:all .15s}
 .sbtn:hover{border-color:#1e4d1a;background:#eaf4e7}
@@ -205,6 +215,22 @@ function afficher() {
         '</div>' +
       '</div>' +
 
+      '<div class="loi25-box">' +
+        '<h3>🔒 Confidentialité et protection de vos données (Loi 25)</h3>' +
+        '<p>En signant ce contrat en ligne, vous consentez à ce que vos informations personnelles (nom, adresse, courriel, téléphone) soient transmises via <strong>GitHub Pages (Microsoft, États-Unis)</strong> uniquement dans le cadre de ce processus de signature électronique. Vos données sont ensuite conservées exclusivement sur les appareils d\'Entretien C-Net, au Canada.</p>' +
+        '<p>Vous pouvez en tout temps demander l\'accès, la correction ou la suppression de vos renseignements en contactant <strong>dereck@entretiencnet.com</strong>.</p>' +
+        '<div class="cb-row"><input type="checkbox" id="cbLoi25" onchange="majBtn()"><label class="cb-lbl" for="cbLoi25">Je consens au traitement de mes données tel que décrit ci-dessus.</label></div>' +
+      '</div>' +
+
+      '<div class="alt-confirm-box">' +
+        '<h3>✉️ Vous préférez ne pas signer en ligne ?</h3>' +
+        '<p>Si vous ne souhaitez pas signer sur ce site, vous pouvez nous envoyer votre acceptation par courriel à <strong>dereck@entretiencnet.com</strong> avec le message suivant :</p>' +
+        '<div class="msg-modele">' +
+          '"Je confirme l\'acceptation du contrat <strong>' + (c.num||'CTR-XXXXX') + '</strong> au nom de <strong>' + (c.nom||'') + '</strong>, en date du ' + new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'}) + '."' +
+        '</div>' +
+        '<button class="copy-btn" onclick="copierMessage()">📋 Copier le message</button>' +
+      '</div>' +
+
       '<button class="btn-main" id="btnAllerSigner" onclick="allerSigner()" disabled style="opacity:.5">Continuer vers la signature &#8594;</button>' +
     '</div>' +
 
@@ -322,8 +348,33 @@ function allerConfirmer() {
 }
 
 function majBtn() {
-  var ok = document.getElementById('cb1').checked && document.getElementById('cb2').checked && document.getElementById('cb3').checked;
-  document.getElementById('btnFinal').disabled = !ok;
+  // Bouton continuer vers signature — nécessite consentement Loi 25
+  var cbLoi25 = document.getElementById('cbLoi25');
+  var btnS = document.getElementById('btnAllerSigner');
+  if (cbLoi25 && btnS) {
+    var okLoi25 = cbLoi25.checked && versChoisiVal && modeChoisiVal;
+    btnS.disabled = !okLoi25;
+    btnS.style.opacity = okLoi25 ? '1' : '0.5';
+  }
+  // Bouton final signature
+  var cb1 = document.getElementById('cb1');
+  var cb2 = document.getElementById('cb2');
+  var cb3 = document.getElementById('cb3');
+  var btnF = document.getElementById('btnFinal');
+  if (cb1 && cb2 && cb3 && btnF) {
+    var okF = cb1.checked && cb2.checked && cb3.checked;
+    btnF.disabled = !okF;
+    btnF.style.opacity = okF ? '1' : '0.5';
+  }
+}
+
+function copierMessage() {
+  var msg = 'Je confirme l\'acceptation du contrat ' + (c.num||'') + ' au nom de ' + (c.nom||'') + ', en date du ' + new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'}) + '.';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(msg).then(function(){ alert('Message copié ! Collez-le dans votre courriel à dereck@entretiencnet.com'); });
+  } else {
+    prompt('Copiez ce message :', msg);
+  }
 }
 
 // ── CANVAS SIGNATURE ────────────────────────────────────────────────────────
@@ -750,6 +801,23 @@ function envoyerConfirmation() {
   var modalLabel = (c.modalitePaiement==='1v') ? '1 versement unique' : '3 versements';
   var dateStr = new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'});
 
+  // Construire le lien de confirmation magique
+  var confirmData = {
+    num: c.num||'',
+    nom: c.nom||'',
+    tel: c.tel||'',
+    email: c.email||'',
+    adresse: c.adresse||'',
+    montant: c.montant||0,
+    dateSig: today,
+    modePaiement: c.modePaiement||'interac',
+    modalitePaiement: c.modalitePaiement||'3v',
+    contratNum: c.num||''
+  };
+  var confirmEncode = btoa(unescape(encodeURIComponent(JSON.stringify(confirmData))));
+  var baseUrl = 'file:///D:/one%20drive/OneDrive/Desktop/autromatisation%20compagnie/files/suivi-clients-cnet.html';
+  var lienConfirm = baseUrl + '?confirmsig=' + confirmEncode;
+
   var sujet = '✅ Contrat signé — ' + (c.num||'') + ' — ' + (c.nom||'');
   var corps =
     'Bonjour Jeff & Dereck,\n\n' +
@@ -758,8 +826,8 @@ function envoyerConfirmation() {
     '• Mode de paiement : ' + modeLabel + '\n' +
     '• Versements : ' + modalLabel + '\n' +
     '• Total (taxes incluses) : ' + fmt2(tot) + ' $\n\n' +
-    'Le contrat est automatiquement confirmé dans votre système.\n' +
-    'Ouvrez Suivi clients ou Suivi paiements pour voir le statut.\n\n' +
+    '>>> CLIQUEZ ICI POUR CONFIRMER LA SIGNATURE DANS VOTRE SYSTÈME <<<\n' +
+    lienConfirm + '\n\n' +
     'Cordialement,\n' + (c.nom||'Le client');
 
   window.location.href = 'mailto:tremblaymrs@gmail.com' +
