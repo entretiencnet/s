@@ -852,19 +852,32 @@ function envoyerConfirmation() {
     contratNum: c.num||''
   };
   var confirmEncode = btoa(unescape(encodeURIComponent(JSON.stringify(confirmData))));
-  var baseUrl = 'file:///D:/one%20drive/OneDrive/Desktop/autromatisation%20compagnie/files/suivi-clients-cnet.html';
+  // Lien magique — détecte dynamiquement le chemin de suivi-clients-cnet.html
+  var baseUrl = window.location.href.replace(/signature-cnet\.html.*$/, 'suivi-clients-cnet.html');
   var lienConfirm = baseUrl + '?confirmsig=' + confirmEncode;
 
   var sujet = '✅ Contrat signé — ' + (c.num||'') + ' — ' + (c.nom||'');
   var corps =
     'Bonjour Jeff & Dereck,\n\n' +
-    (c.nom||'') + ' a signé le contrat ' + (c.num||'') + ' le ' + dateStr + '.\n\n' +
-    'DÉTAILS :\n' +
+    '✅ ' + (c.nom||'') + ' a signé le contrat ' + (c.num||'') + ' le ' + dateStr + '.\n\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    'DÉTAILS DU CONTRAT :\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    '• Contrat : ' + (c.num||'') + '\n' +
+    '• Client : ' + (c.nom||'') + '\n' +
     '• Mode de paiement : ' + modeLabel + '\n' +
     '• Versements : ' + modalLabel + '\n' +
     '• Total (taxes incluses) : ' + fmt2(tot) + ' $\n\n' +
-    '>>> CLIQUEZ ICI POUR CONFIRMER LA SIGNATURE DANS VOTRE SYSTÈME <<<\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    'ACTION REQUISE — CONFIRMER DANS VOTRE SYSTÈME :\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+    'Copiez ce lien et collez-le dans votre navigateur\n' +
+    'pour confirmer la signature dans le suivi clients :\n\n' +
     lienConfirm + '\n\n' +
+    '(Ouvrez ce fichier sur votre ordinateur, puis collez\n' +
+    'le lien ci-dessus dans la barre d\'adresse du navigateur)\n\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    'Le PDF du contrat signé a été téléchargé par le client.\n\n' +
     'Cordialement,\n' + (c.nom||'Le client');
 
   window.location.href = 'mailto:tremblaymrs@gmail.com' +
