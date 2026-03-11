@@ -618,6 +618,89 @@ function finaliser() {
 
   doc.save('contrat-signe-cnet-'+(c.nom||'client').replace(/\s+/g,'-')+'-'+(c.num||'')+'.pdf');
 
+  // ── CONFIRMATION AUTOMATIQUE dans localStorage ────────────────────────────
+  // Met à jour cnet-contrats et cnet-clients immédiatement après la signature
+  (function confirmerAuto() {
+    try {
+      var today = new Date().toISOString().split('T')[0];
+      var tps = Math.round((c.montant||0)*0.05*100)/100;
+      var tvq = Math.round((c.montant||0)*0.09975*100)/100;
+      var tot = Math.round(((c.montant||0)+tps+tvq)*100)/100;
+      var v1 = Math.round(tot/3*100)/100;
+      var v2 = v1;
+      var v3 = Math.round((tot-v1-v2)*100)/100;
+      var ANNEE = new Date().getFullYear();
+
+      // 1. Mettre à jour cnet-contrats
+      var contrats = [];
+      try { contrats = JSON.parse(localStorage.getItem('cnet-contrats') || '[]'); } catch(e) {}
+      var ic = contrats.findIndex(function(x){ return x.num === c.num; });
+      var contratObj = {
+        nom:c.nom, tel:c.tel||'', email:c.email||'', adresse:c.adresse||'',
+        type:c.type||'residentiel', montant:c.montant||0,
+        services:c.services||[], date:c.date||today,
+        signe:true, dateSig:today,
+        num:c.num||('CTR-'+Date.now().toString().slice(-5)),
+        modePaiement:c.modePaiement||'interac',
+        modalitePaiement:c.modalitePaiement||'3v',
+        paiementComplet:false, acompte:c.acompte||0,
+        duree:c.duree||1, debut:c.debut||'', fin:c.fin||'',
+        notes:c.notes||''
+      };
+      if (c.modalitePaiement === '1v') {
+        contratObj.paiementUnique = { montant:tot, recu:false, date:today };
+        contratObj.versements = [];
+      } else {
+        contratObj.versements = [
+          {num:1, label:'1er versement', date:ANNEE+'-05-01', montant:v1, recu:false},
+          {num:2, label:'2e versement',  date:ANNEE+'-07-01', montant:v2, recu:false},
+          {num:3, label:'3e versement',  date:ANNEE+'-09-01', montant:v3, recu:false}
+        ];
+      }
+      if (ic !== -1) {
+        Object.assign(contrats[ic], contratObj);
+      } else {
+        contrats.push(contratObj);
+      }
+      localStorage.setItem('cnet-contrats', JSON.stringify(contrats));
+
+      // 2. Mettre à jour cnet-clients
+      var clients = [];
+      try { clients = JSON.parse(localStorage.getItem('cnet-clients') || '[]'); } catch(e) {}
+      var nomN = (c.nom||'').toLowerCase().trim();
+      var telN = (c.tel||'').replace(/\D/g,'');
+      var iCl = clients.findIndex(function(cl){
+        return (cl.nom && cl.nom.toLowerCase().trim() === nomN) ||
+               (telN && cl.tel && cl.tel.replace(/\D/g,'') === telN);
+      });
+      var svcNoms = (c.services||[]).map(function(s){
+        return typeof s === 'object' ? (s.nom||s.name||'Service') : s;
+      });
+      var clientObj = {
+        nom:c.nom, tel:c.tel||'', email:c.email||'', adresse:c.adresse||'',
+        type:c.type||'residentiel', montant:c.montant||0,
+        services:svcNoms, contrat:c.duree||1,
+        contratNum:c.num||'', date:c.date||today,
+        statut:'acceptee', dateSig:today,
+        modePaiement:c.modePaiement||'interac',
+        modalitePaiement:c.modalitePaiement||'3v',
+        notes:c.notes||''
+      };
+      if (iCl !== -1) {
+        Object.assign(clients[iCl], clientObj);
+      } else {
+        clients.push(clientObj);
+      }
+      localStorage.setItem('cnet-clients', JSON.stringify(clients));
+
+    } catch(e) {
+      console.warn('confirmerAuto:', e);
+    }
+  })();
+
+  // Envoyer courriel de notification automatiquement
+  setTimeout(function() { envoyerConfirmation(); }, 1200);
+
   // ── ÉCRAN DE SUCCÈS ──────────────────────────────────────────────────────
   setTimeout(function() {
     var tps2 = Math.round((c.montant||0)*0.05*100)/100;
@@ -641,10 +724,9 @@ function finaliser() {
             '<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#5a7a52">Total (taxes incl.)</span><strong style="color:#1e4d1a;font-size:16px">' + fmt2(tot2) + ' $</strong></div>' +
           '</div>' +
         '</div>' +
-        '<div style="background:#fffbeb;border:1px solid #e6c84a;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#7a6010">' +
-          '📧 <strong>Dernière étape :</strong> Cliquez le bouton ci-dessous pour envoyer la confirmation à Entretien C-Net.' +
+        '<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#166534;font-weight:600">' +
+          '✅ Entretien C-Net a été notifié automatiquement. Vous n\'avez rien d\'autre à faire !' +
         '</div>' +
-        '<button onclick="envoyerConfirmation()" style="background:#1e4d1a;color:white;border:none;border-radius:12px;padding:16px 28px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px">📧 Envoyer la confirmation par courriel</button>' +
         '<p style="font-size:11px;color:#a0b89a;margin-top:8px">Entretien C-Net · 418 440-6303 · entretiencnet.com</p>' +
       '</div>';
   }, 500);
@@ -659,26 +741,25 @@ function fmtD(d){
 }
 
 function envoyerConfirmation() {
+  // Envoyer courriel de notification simple — sans lien local
   var today = new Date().toISOString().split('T')[0];
   var tps = Math.round((c.montant||0)*0.05*100)/100;
   var tvq = Math.round((c.montant||0)*0.09975*100)/100;
   var tot = Math.round(((c.montant||0)+tps+tvq)*100)/100;
   var modeLabel = c.modePaiement==='interac' ? 'Virement Interac' : 'Chèque postdaté';
   var modalLabel = (c.modalitePaiement==='1v') ? '1 versement unique' : '3 versements';
+  var dateStr = new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'});
 
-  var retourParam = getParam('retour');
-  var lienRetour = retourParam ? decodeURIComponent(retourParam) : '';
-
-  var sujet = 'Contrat signé — ' + (c.num||'') + ' — ' + (c.nom||'');
+  var sujet = '✅ Contrat signé — ' + (c.num||'') + ' — ' + (c.nom||'');
   var corps =
-    'Bonjour Dereck,\n\n' +
-    (c.nom||'') + ' a signé le contrat ' + (c.num||'') + ' le ' + fmtD(today) + '.\n\n' +
-    '— Mode de paiement : ' + modeLabel + '\n' +
-    '— Versements : ' + modalLabel + '\n' +
-    '— Total (taxes incluses) : ' + fmt2(tot) + ' $\n\n' +
-    (lienRetour ?
-      '✅ CLIQUE CE LIEN POUR MARQUER LE CONTRAT SIGNÉ DANS TON SYSTÈME :\n' + lienRetour + '\n\n' :
-      '') +
+    'Bonjour Jeff & Dereck,\n\n' +
+    (c.nom||'') + ' a signé le contrat ' + (c.num||'') + ' le ' + dateStr + '.\n\n' +
+    'DÉTAILS :\n' +
+    '• Mode de paiement : ' + modeLabel + '\n' +
+    '• Versements : ' + modalLabel + '\n' +
+    '• Total (taxes incluses) : ' + fmt2(tot) + ' $\n\n' +
+    'Le contrat est automatiquement confirmé dans votre système.\n' +
+    'Ouvrez Suivi clients ou Suivi paiements pour voir le statut.\n\n' +
     'Cordialement,\n' + (c.nom||'Le client');
 
   window.location.href = 'mailto:tremblaymrs@gmail.com' +
