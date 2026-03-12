@@ -479,7 +479,7 @@ function finaliser() {
   doc.setFillColor(30,77,26); doc.rect(0,0,W,36,'F');
   doc.setFillColor(200,168,75); doc.rect(0,34,W,2,'F');
   // Logo
-  try { doc.addImage('data:image/jpeg;base64,'+LOGO_B64_PDF,'JPEG',M,4,22,22); } catch(e){}
+  try { if(LOGO_B64_PDF){try{doc.addImage('data:image/png;base64,'+LOGO_B64_PDF,'PNG',M,4,22,22);}catch(e1){doc.addImage('data:image/jpeg;base64,'+LOGO_B64_PDF,'JPEG',M,4,22,22);}} } catch(e){}
   doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
   doc.text('ENTRETIEN C-NET',M+26,13);
   doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(168,213,162);
@@ -669,7 +669,7 @@ function finaliser() {
   doc.addPage();
   doc.setFillColor(30,77,26); doc.rect(0,0,W,36,'F');
   doc.setFillColor(200,168,75); doc.rect(0,34,W,2,'F');
-  try { doc.addImage('data:image/jpeg;base64,'+LOGO_B64_PDF,'JPEG',M,4,22,22); } catch(e){}
+  try { if(LOGO_B64_PDF){try{doc.addImage('data:image/png;base64,'+LOGO_B64_PDF,'PNG',M,4,22,22);}catch(e1){doc.addImage('data:image/jpeg;base64,'+LOGO_B64_PDF,'JPEG',M,4,22,22);}} } catch(e){}
   doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
   doc.text('ENTRETIEN C-NET',M+26,13);
   doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(168,213,162);
@@ -749,9 +749,9 @@ function finaliser() {
         contratObj.versements = [];
       } else {
         contratObj.versements = [
-          {num:1, label:'1er versement', date:ANNEE+'-05-01', montant:v1, recu:false},
-          {num:2, label:'2e versement',  date:ANNEE+'-07-01', montant:v2, recu:false},
-          {num:3, label:'3e versement',  date:ANNEE+'-09-01', montant:v3, recu:false}
+          {num:1, label:'Paiement no 1 — 1er mai '+ANNEE,     date:ANNEE+'-05-01', montant:v1, recu:false},
+          {num:2, label:'Paiement no 2 — 1er juillet '+ANNEE, date:ANNEE+'-07-01', montant:v2, recu:false},
+          {num:3, label:'Paiement no 3 — 1er sept. '+ANNEE,   date:ANNEE+'-09-01', montant:v3, recu:false}
         ];
       }
       if (ic !== -1) {
@@ -864,33 +864,16 @@ function envoyerConfirmation() {
   // Lien local pour Jeff (fonctionne quand il ouvre suivi-clients depuis son bureau)
   var lienLocal = 'suivi-clients-cnet.html?confirmsig=' + confirmEncode;
 
-  var sujet = '✅ ' + (c.nom||'') + ' a signé — ' + (c.num||'');
+  var sujet = '✅ Contrat signé — ' + (c.num||'') + ' · ' + (c.nom||'');
   var corps =
-    'Bonjour Jeff & Dereck,\n\n' +
-    '✅ ' + (c.nom||'') + ' a signé le contrat ' + (c.num||'') + ' le ' + dateStr + '.\n' +
-    'Le PDF signé a été téléchargé automatiquement par le client.\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'DÉTAILS :\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    '• Contrat  : ' + (c.num||'') + '\n' +
-    '• Client   : ' + (c.nom||'') + '\n' +
-    '• Tél      : ' + (c.tel||'') + '\n' +
-    '• Adresse  : ' + (c.adresse||'') + '\n' +
-    '• Paiement : ' + modeLabel + ' — ' + modalLabel + '\n' +
-    '• Total    : ' + fmt2(tot) + ' $ (taxes incl.)\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'POUR CONFIRMER DANS VOTRE SYSTÈME :\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
-    'OPTION A (automatique) :\n' +
-    '1. Ouvre le fichier suivi-clients-cnet.html sur ton bureau\n' +
-    '2. Dans la barre d\'adresse du navigateur, remplace la fin de l\'URL par :\n' +
-    '   suivi-clients-cnet.html?confirmsig=' + confirmEncode + '\n' +
-    '3. Appuie sur Entrée — la confirmation se fait automatiquement\n\n' +
-    'OPTION B (manuelle) :\n' +
-    '1. Ouvre suivi-clients-cnet.html\n' +
-    '2. Cherche le contrat ' + (c.num||'') + ' — ' + (c.nom||'') + '\n' +
-    '3. Clique sur le bouton ✉️ « Confirmation reçue »\n\n' +
-    'Cordialement,\n' + (c.nom||'Le client') + ' (via système C-Net)';
+    'Bonjour,\n\n' +
+    '✅ ' + (c.nom||'') + ' a accepté et signé le contrat ' + (c.num||'') + ' le ' + dateStr + '.\n\n' +
+    '  Contrat  : ' + (c.num||'') + '\n' +
+    '  Client   : ' + (c.nom||'') + '\n' +
+    '  Paiement : ' + modeLabel + ' — ' + modalLabel + '\n' +
+    '  Total    : ' + fmt2(tot) + ' $ (TPS + TVQ incl.)\n' +
+    '  Signé le : ' + dateStr + '\n\n' +
+    'Cordialement,\nSystème C-Net';
 
   window.location.href = 'mailto:tremblaymrs@gmail.com' +
     '?subject=' + encodeURIComponent(sujet) +
