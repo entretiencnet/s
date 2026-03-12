@@ -3,886 +3,741 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Signer votre contrat — Entretien C-Net</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<title>Signature de contrat — Entretien C-Net</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;background:#f0f4ee;min-height:100vh}
-.header{background:#1e4d1a;padding:20px 24px;display:flex;align-items:center;gap:14px}
-.logo{width:44px;height:44px;background:white;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.logo img{width:38px;height:38px;object-fit:contain}
-.header h1{font-size:18px;font-weight:800;color:white}
-.header p{font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px}
-.wrap{max-width:640px;margin:0 auto;padding:24px 16px 48px}
-.etapes{display:flex;margin-bottom:24px}
-.etape{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
-.etape::after{content:"";position:absolute;top:14px;left:60%;width:80%;height:2px;background:#dde8d9;z-index:0}
-.etape:last-child::after{display:none}
-.ecer{width:28px;height:28px;border-radius:50%;background:#dde8d9;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#7a9e74;z-index:1}
-.etape.active .ecer{background:#1e4d1a;color:white}
-.etape.done .ecer{background:#c8a84b;color:white}
-.elbl{font-size:10px;color:#7a9e74;font-weight:600;text-align:center}
-.etape.active .elbl{color:#1e4d1a;font-weight:700}
-.card{background:white;border-radius:18px;padding:22px 20px;box-shadow:0 2px 14px rgba(0,0,0,0.06);margin-bottom:14px}
-.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#1e4d1a;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.card-title::before{content:"";display:block;width:3px;height:14px;background:#c8a84b;border-radius:2px}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.info-box{background:#f5faf4;border-radius:12px;padding:12px 14px}
-.info-box.full{grid-column:1/-1}
-.info-lbl{font-size:10px;font-weight:700;color:#7a9e74;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
-.info-val{font-size:13px;font-weight:600;color:#1a3317}
-.info-val.grand{font-size:18px;font-weight:800;color:#1e4d1a}
-.svc-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#1a3317;padding:6px 10px;background:#f5faf4;border-radius:8px;margin-bottom:5px}
-.svc-item::before{content:"✓";color:#1e4d1a;font-weight:700;font-size:12px}
-.sig-zone{border:2px dashed #b0d4a8;border-radius:14px;overflow:hidden;position:relative;background:#fafffe;transition:border-color .2s}
-.sig-zone.drawing{border-color:#1e4d1a;border-style:solid}
-.sig-lbl{text-align:center;padding:10px;font-size:11px;color:#b0c8aa;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-canvas{display:block;width:100%;height:160px;cursor:crosshair;touch-action:none}
-.loi25-box{background:#fffbeb;border:1.5px solid #fbbf24;border-radius:14px;padding:16px 18px;margin-bottom:14px}
-.loi25-box h3{font-size:13px;font-weight:700;color:#92400e;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.loi25-box p{font-size:11.5px;color:#78350f;line-height:1.6;margin-bottom:8px}
-.loi25-box .cb-row{margin-top:10px}
-.alt-confirm-box{background:#f0fdf4;border:1.5px solid #86efac;border-radius:14px;padding:18px;margin-top:14px}
-.alt-confirm-box h3{font-size:13px;font-weight:700;color:#166534;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.alt-confirm-box p{font-size:12px;color:#14532d;line-height:1.6;margin-bottom:10px}
-.msg-modele{background:white;border:1.5px solid #86efac;border-radius:10px;padding:12px 14px;font-size:12px;color:#1a3317;font-style:italic;line-height:1.7;margin:8px 0}
-.msg-modele strong{font-style:normal;color:#166534}
-.copy-btn{font-size:11px;background:#166534;color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:700;margin-top:6px}
-.sig-actions{display:flex;gap:8px;margin-top:10px}
-.sbtn{padding:9px 16px;border:1.5px solid #dde8d9;border-radius:9px;background:white;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;font-size:12px;font-weight:600;cursor:pointer;color:#5a7a52;transition:all .15s}
-.sbtn:hover{border-color:#1e4d1a;background:#eaf4e7}
-.sig-status{margin-top:8px;font-size:12px;color:#7a9e74;text-align:center}
-.sig-status.ok{color:#16a34a;font-weight:700}
-.cb-row{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:#f5faf4;border-radius:12px;margin-bottom:10px;cursor:pointer}
-.cb-row input{width:18px;height:18px;accent-color:#1e4d1a;flex-shrink:0;margin-top:1px;cursor:pointer}
-.cb-lbl{font-size:12.5px;color:#1a3317;line-height:1.5}
-.btn-main{width:100%;padding:16px;background:#1e4d1a;color:white;border:none;border-radius:14px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:background .15s;margin-top:6px}
-.btn-main:hover{background:#2d6e27}
-.btn-main:disabled{background:#b0c8aa;cursor:not-allowed}
-.succes{text-align:center;padding:32px 20px}
-.succes-icon{font-size:64px;margin-bottom:16px}
-.succes h2{font-size:22px;font-weight:800;color:#1e4d1a;margin-bottom:8px}
-.succes p{font-size:14px;color:#5a7a52;line-height:1.6;margin-bottom:16px}
-.erreur{text-align:center;padding:48px 20px}
-.erreur-icon{font-size:56px;margin-bottom:16px}
-.erreur h2{font-size:20px;font-weight:700;color:#dc2626;margin-bottom:8px}
-.erreur p{font-size:13px;color:#7a9e74;line-height:1.7}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
+:root {
+  --vert:#1e4d1a; --vert-mid:#2d6e27; --vert-clair:#4a9e42;
+  --or:#c8a84b; --or-clair:#f6d860;
+  --bg:#f0f4ee; --bg2:#e5ede2;
+  --texte:#1a2e18; --gris:#7a9e74;
+  --rouge:#dc2626; --bleu:#2563eb;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--texte);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:32px 16px 80px;
+}
+
+/* ── LOGO ── */
+.top{text-align:center;margin-bottom:28px;}
+.top .badge-secure{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#dcfce7;color:#166534;
+  padding:5px 14px;border-radius:20px;
+  font-size:11px;font-weight:800;
+  text-transform:uppercase;letter-spacing:0.05em;
+  margin-bottom:14px;
+}
+.top h1{font-size:26px;font-weight:900;color:var(--vert);}
+.top .sous{font-size:13px;color:var(--gris);margin-top:4px;}
+
+/* ── CARD ── */
+.card{
+  background:white;
+  border-radius:20px;
+  box-shadow:0 4px 40px rgba(0,0,0,0.10);
+  width:100%;max-width:540px;
+  overflow:hidden;
+}
+.card-head{
+  background:var(--vert);
+  padding:20px 24px;
+  display:flex;align-items:center;gap:14px;
+}
+.card-head .ico{
+  width:48px;height:48px;background:rgba(255,255,255,0.15);
+  border-radius:12px;display:flex;align-items:center;
+  justify-content:center;font-size:24px;flex-shrink:0;
+}
+.card-head h2{font-size:17px;font-weight:900;color:white;}
+.card-head p{font-size:12px;color:rgba(255,255,255,0.65);margin-top:2px;}
+.card-body{padding:24px;}
+
+/* ── INFOS CONTRAT ── */
+.infos-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;margin-bottom:20px;
+}
+.info-pill{
+  background:var(--bg);border-radius:10px;
+  padding:10px 13px;
+}
+.info-lbl{font-size:10px;font-weight:800;color:var(--gris);
+  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;}
+.info-val{font-size:14px;font-weight:700;color:var(--texte);}
+.info-val.num{font-family:'DM Mono',monospace;color:var(--or);}
+
+/* ── SERVICES ── */
+.svc-list{background:var(--bg);border-radius:12px;padding:14px;margin-bottom:20px;}
+.svc-titre{font-size:11px;font-weight:800;color:var(--vert);
+  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;}
+.svc-row{display:flex;align-items:center;gap:8px;
+  font-size:13px;color:var(--texte);padding:4px 0;}
+.svc-dot{width:8px;height:8px;border-radius:3px;
+  background:var(--vert-clair);flex-shrink:0;}
+
+/* ── TOTAL ── */
+.total-box{
+  background:var(--vert);border-radius:12px;
+  padding:14px 18px;display:flex;
+  align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.total-box .lbl{color:rgba(255,255,255,0.7);font-size:13px;font-weight:700;}
+.total-box .montant{color:var(--or-clair);font-size:22px;font-weight:900;}
+
+/* ── PAIEMENT ── */
+.paiement-section{margin-bottom:20px;}
+.section-titre{font-size:12px;font-weight:800;color:var(--vert);
+  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;}
+.radio-group{display:flex;flex-direction:column;gap:8px;}
+.radio-opt{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:12px 14px;border:2px solid var(--bg2);border-radius:12px;
+  cursor:pointer;transition:all 0.15s;
+}
+.radio-opt:hover{border-color:var(--vert-clair);}
+.radio-opt.sel{border-color:var(--vert);background:#f0f8ee;}
+.radio-opt input[type=radio]{margin-top:2px;accent-color:var(--vert);}
+.radio-nom{font-size:13px;font-weight:700;}
+.radio-desc{font-size:11px;color:var(--gris);margin-top:2px;}
+
+.mode-group{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.mode-opt{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border:2px solid var(--bg2);border-radius:10px;
+  cursor:pointer;transition:all 0.15s;font-size:13px;font-weight:700;
+}
+.mode-opt:hover{border-color:var(--vert-clair);}
+.mode-opt.sel{border-color:var(--vert);background:#f0f8ee;}
+.mode-opt input[type=radio]{accent-color:var(--vert);}
+
+/* ── VERSEMENTS ── */
+.versements{background:#f0f8ee;border:1.5px solid #a8d5a2;
+  border-radius:12px;padding:14px;margin-top:10px;display:none;}
+.versements.show{display:block;}
+.v-row{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid #c8e8c4;font-size:13px;}
+.v-row:last-child{border-bottom:none;}
+.v-lbl{color:var(--gris);}
+.v-montant{font-weight:800;color:var(--vert);}
+.v-date{font-size:11px;color:var(--gris);}
+
+/* ── ZONE SIGNATURE ── */
+.signature-wrap{margin-bottom:20px;}
+.canvas-container{
+  border:2px solid var(--bg2);border-radius:14px;
+  overflow:hidden;background:white;position:relative;
+  cursor:crosshair;
+}
+canvas#sig-canvas{
+  display:block;width:100%;height:200px;
+  touch-action:none;
+}
+.sig-placeholder{
+  position:absolute;inset:0;display:flex;
+  align-items:center;justify-content:center;
+  flex-direction:column;gap:8px;pointer-events:none;
+  transition:opacity 0.3s;
+}
+.sig-placeholder.hidden{opacity:0;}
+.sig-placeholder .ph-ico{font-size:32px;opacity:0.3;}
+.sig-placeholder .ph-txt{font-size:13px;color:var(--gris);font-weight:600;}
+.sig-actions{display:flex;gap:8px;margin-top:8px;}
+.btn-effacer{
+  padding:7px 14px;border:1.5px solid var(--bg2);border-radius:8px;
+  background:white;font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:700;color:var(--gris);cursor:pointer;
+  transition:all 0.15s;
+}
+.btn-effacer:hover{border-color:var(--rouge);color:var(--rouge);}
+
+/* ── CONSENTEMENT ── */
+.consent{
+  display:flex;align-items:flex-start;gap:10px;
+  background:#f0f8ee;border:1.5px solid #a8d5a2;
+  border-radius:10px;padding:12px 14px;margin-bottom:20px;
+  cursor:pointer;
+}
+.consent input[type=checkbox]{
+  width:18px;height:18px;margin-top:2px;accent-color:var(--vert);
+  flex-shrink:0;cursor:pointer;
+}
+.consent-txt{font-size:12px;color:var(--texte);line-height:1.7;}
+.consent-txt strong{color:var(--vert);}
+
+/* ── BOUTON SIGNER ── */
+.btn-signer{
+  width:100%;padding:18px;border:none;border-radius:14px;
+  background:var(--vert);color:white;
+  font-family:'DM Sans',sans-serif;
+  font-size:16px;font-weight:900;
+  cursor:pointer;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  letter-spacing:-0.2px;
+}
+.btn-signer:hover{background:var(--vert-mid);transform:translateY(-1px);box-shadow:0 6px 20px rgba(30,77,26,0.3);}
+.btn-signer:disabled{background:#c8dcc4;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* ── SÉCURITÉ ── */
+.securite{
+  display:flex;flex-direction:column;gap:5px;
+  margin-top:14px;padding:12px 14px;
+  background:#f8faf7;border-radius:10px;
+  border:1px solid var(--bg2);
+}
+.sec-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--gris);}
+.sec-row .ico{font-size:13px;}
+
+/* ── ÉCRAN SUCCÈS ── */
+#ecran-succes{display:none;width:100%;max-width:540px;}
+.succes-card{
+  background:white;border-radius:20px;
+  box-shadow:0 4px 40px rgba(0,0,0,0.10);
+  padding:40px 32px;text-align:center;
+}
+.succes-check{
+  width:80px;height:80px;background:#dcfce7;
+  border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:36px;
+  margin:0 auto 20px;
+}
+.succes-titre{font-size:22px;font-weight:900;color:var(--vert);margin-bottom:8px;}
+.succes-sous{font-size:14px;color:var(--gris);line-height:1.7;margin-bottom:24px;}
+.succes-recap{
+  background:var(--bg);border-radius:12px;padding:16px;
+  text-align:left;margin-bottom:20px;
+}
+.succes-ligne{
+  display:flex;justify-content:space-between;
+  font-size:13px;padding:5px 0;
+  border-bottom:1px solid var(--bg2);
+}
+.succes-ligne:last-child{border-bottom:none;}
+.succes-ligne strong{color:var(--vert);}
+.succes-footer{font-size:11px;color:var(--gris);margin-top:16px;line-height:1.8;}
+
+/* ── ÉCRAN ERREUR ── */
+#ecran-erreur{display:none;width:100%;max-width:540px;}
+.erreur-card{
+  background:white;border-radius:20px;padding:40px 32px;
+  text-align:center;box-shadow:0 4px 40px rgba(0,0,0,0.10);
+}
+.erreur-ico{font-size:48px;margin-bottom:16px;}
+.erreur-titre{font-size:20px;font-weight:900;color:var(--rouge);margin-bottom:8px;}
+.erreur-sous{font-size:13px;color:var(--gris);line-height:1.7;}
+
+/* ── ÉCRAN DEJA SIGNÉ ── */
+#ecran-deja{display:none;width:100%;max-width:540px;}
+.deja-card{
+  background:white;border-radius:20px;padding:40px 32px;
+  text-align:center;box-shadow:0 4px 40px rgba(0,0,0,0.10);
+}
+
+/* ── LOADING ── */
+#ecran-chargement{width:100%;max-width:540px;text-align:center;padding:60px 0;}
+.spinner{
+  width:40px;height:40px;border:4px solid var(--bg2);
+  border-top-color:var(--vert);border-radius:50%;
+  animation:spin 0.8s linear infinite;margin:0 auto 16px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:480px){
+  .infos-grid{grid-template-columns:1fr;}
+  .mode-group{grid-template-columns:1fr;}
+  body{padding:20px 12px 60px;}
+}
 </style>
 </head>
 <body>
-<div class="header">
-  <div class="logo"><img src="data:image/png;base64,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" alt="C-Net"></div>
-  <div><h1>Entretien C-Net</h1><p>Signature de contrat en ligne</p></div>
+
+<!-- CHARGEMENT -->
+<div id="ecran-chargement">
+  <div class="spinner"></div>
+  <p style="color:var(--gris);font-size:14px;font-weight:600;">Chargement du contrat…</p>
 </div>
-<div class="wrap" id="wrap"></div>
+
+<!-- FORMULAIRE SIGNATURE -->
+<div id="ecran-principal" style="display:none;width:100%;max-width:540px;">
+
+  <div class="top">
+    <div class="badge-secure">🔒 Signature sécurisée</div>
+    <h1 id="nom-compagnie">Entretien C-Net</h1>
+    <p class="sous">Veuillez lire et signer votre contrat d'entretien paysager</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="ico">📄</div>
+      <div>
+        <h2 id="head-titre">Contrat d'entretien</h2>
+        <p id="head-num">CTR-00001</p>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <!-- INFOS CLIENT -->
+      <div class="infos-grid">
+        <div class="info-pill">
+          <div class="info-lbl">Client</div>
+          <div class="info-val" id="info-nom">—</div>
+        </div>
+        <div class="info-pill">
+          <div class="info-lbl">N° Contrat</div>
+          <div class="info-val num" id="info-num">—</div>
+        </div>
+        <div class="info-pill">
+          <div class="info-lbl">Période</div>
+          <div class="info-val" id="info-periode">—</div>
+        </div>
+        <div class="info-pill">
+          <div class="info-lbl">Type</div>
+          <div class="info-val" id="info-type">—</div>
+        </div>
+      </div>
+
+      <!-- SERVICES -->
+      <div class="svc-list" id="svc-list" style="display:none;">
+        <div class="svc-titre">✅ Services inclus</div>
+        <div id="svc-items"></div>
+      </div>
+
+      <!-- TOTAL -->
+      <div class="total-box">
+        <div>
+          <div class="lbl">Total TTC (taxes incluses)</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;">TPS + TVQ incluses</div>
+        </div>
+        <div class="montant" id="info-total">—</div>
+      </div>
+
+      <!-- MODALITÉ DE PAIEMENT -->
+      <div class="paiement-section">
+        <div class="section-titre">💳 Modalité de paiement</div>
+        <div class="radio-group">
+          <label class="radio-opt sel" id="opt-3v" onclick="choisirModalite('3v')">
+            <input type="radio" name="modalite" value="3v" checked>
+            <div>
+              <div class="radio-nom">3 versements égaux</div>
+              <div class="radio-desc">Début de saison · Mi-saison · Fin de saison</div>
+            </div>
+          </label>
+          <label class="radio-opt" id="opt-1v" onclick="choisirModalite('1v')">
+            <input type="radio" name="modalite" value="1v">
+            <div>
+              <div class="radio-nom">1 versement unique</div>
+              <div class="radio-desc">Paiement complet au début de la saison</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="versements show" id="versements-3v"></div>
+        <div class="versements" id="versements-1v"></div>
+
+        <div style="margin-top:14px;">
+          <div class="section-titre">Mode de paiement</div>
+          <div class="mode-group">
+            <label class="mode-opt sel" id="mode-interac" onclick="choisirMode('interac')">
+              <input type="radio" name="mode" value="interac" checked>
+              <span>💸 Interac</span>
+            </label>
+            <label class="mode-opt" id="mode-cheque" onclick="choisirMode('cheque')">
+              <input type="radio" name="mode" value="cheque">
+              <span>📝 Chèque</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGNATURE -->
+      <div class="signature-wrap">
+        <div class="section-titre">✍️ Votre signature</div>
+        <div class="canvas-container">
+          <canvas id="sig-canvas"></canvas>
+          <div class="sig-placeholder" id="sig-placeholder">
+            <div class="ph-ico">✍️</div>
+            <div class="ph-txt">Signez ici avec votre doigt ou votre souris</div>
+          </div>
+        </div>
+        <div class="sig-actions">
+          <button class="btn-effacer" onclick="effacerSig()">🗑️ Effacer la signature</button>
+          <span id="sig-status" style="font-size:12px;color:var(--vert-clair);display:flex;align-items:center;gap:4px;"></span>
+        </div>
+      </div>
+
+      <!-- CONSENTEMENT -->
+      <label class="consent" id="consent-label">
+        <input type="checkbox" id="consent-check" onchange="majBouton()">
+        <div class="consent-txt">
+          J'ai lu et j'accepte les conditions du contrat d'entretien paysager.
+          Je comprends que cette signature électronique a la même valeur légale qu'une signature manuscrite.
+          <strong>Je confirme que je suis <span id="consent-nom">le client</span>.</strong>
+        </div>
+      </label>
+
+      <!-- BOUTON -->
+      <button class="btn-signer" id="btn-signer" disabled onclick="soumettre()">
+        ✍️ Signer le contrat
+      </button>
+
+      <!-- SÉCURITÉ -->
+      <div class="securite">
+        <div class="sec-row"><span class="ico">🔒</span> Connexion sécurisée — vos données sont protégées</div>
+        <div class="sec-row"><span class="ico">✅</span> Signature unique — impossible de signer deux fois</div>
+        <div class="sec-row"><span class="ico">📧</span> Une confirmation vous sera envoyée par courriel</div>
+        <div class="sec-row"><span class="ico">🏢</span> <span id="sec-compagnie">Entretien C-Net</span> — contrat officiel saison 2026</div>
+      </div>
+
+    </div><!-- /card-body -->
+  </div><!-- /card -->
+
+</div><!-- /ecran-principal -->
+
+<!-- SUCCÈS -->
+<div id="ecran-succes">
+  <div class="succes-card">
+    <div class="succes-check">✅</div>
+    <div class="succes-titre">Contrat signé !</div>
+    <div class="succes-sous">
+      Merci <strong id="s-nom"></strong>.<br>
+      Votre contrat a été signé avec succès.<br>
+      Entretien C-Net vous contactera prochainement.
+    </div>
+    <div class="succes-recap">
+      <div class="succes-ligne"><span>Contrat</span><strong id="s-num"></strong></div>
+      <div class="succes-ligne"><span>Modalité</span><strong id="s-modalite"></strong></div>
+      <div class="succes-ligne"><span>Mode</span><strong id="s-mode"></strong></div>
+      <div class="succes-ligne"><span>Total TTC</span><strong id="s-total"></strong></div>
+      <div class="succes-ligne"><span>Signé le</span><strong id="s-date"></strong></div>
+    </div>
+    <div class="succes-footer">
+      📧 Gardez cette page comme confirmation.<br>
+      Pour toute question : <strong id="s-tel"></strong>
+    </div>
+  </div>
+</div>
+
+<!-- DÉJÀ SIGNÉ -->
+<div id="ecran-deja">
+  <div class="deja-card">
+    <div style="font-size:48px;margin-bottom:16px;">📋</div>
+    <div style="font-size:20px;font-weight:900;color:var(--bleu);margin-bottom:8px;">Contrat déjà signé</div>
+    <div style="font-size:13px;color:var(--gris);line-height:1.7;">
+      Ce contrat a déjà été signé.<br>
+      Si vous croyez qu'il s'agit d'une erreur, contactez Entretien C-Net.
+    </div>
+    <div style="margin-top:16px;font-size:13px;font-weight:700;" id="deja-tel"></div>
+  </div>
+</div>
+
+<!-- ERREUR -->
+<div id="ecran-erreur">
+  <div class="erreur-card">
+    <div class="erreur-ico">⚠️</div>
+    <div class="erreur-titre">Lien invalide</div>
+    <div class="erreur-sous" id="erreur-msg">
+      Ce lien de signature est invalide ou a expiré.<br>
+      Contactez Entretien C-Net pour obtenir un nouveau lien.
+    </div>
+    <div style="margin-top:16px;font-size:13px;font-weight:700;" id="erreur-tel"></div>
+  </div>
+</div>
 
 <script>
-// ── LIRE LES DONNÉES DU LIEN ────────────────────────────────────────────────
-function getParam(name) {
-  var search = window.location.search || window.location.href.split('?')[1] || '';
-  if (search.charAt(0) === '?') search = search.slice(1);
-  var pairs = search.split('&');
-  for (var i = 0; i < pairs.length; i++) {
-    var pair = pairs[i].split('=');
-    if (decodeURIComponent(pair[0]) === name) {
-      return pair[1] ? decodeURIComponent(pair[1].replace(/\+/g,' ')) : '';
-    }
+// ════════════════════════════════════════════
+// LECTURE DES PARAMÈTRES URL
+// ?contrat=CTR-00001&nom=Jean+Tremblay&tel=418-000-0000
+// ════════════════════════════════════════════
+var p = new URLSearchParams(window.location.search);
+var CONTRAT_NUM = p.get('contrat') || '';
+var CLIENT_NOM  = decodeURIComponent(p.get('nom') || '');
+var CLIENT_TEL  = decodeURIComponent(p.get('tel') || '');
+
+// Branding depuis localStorage (si même domaine) ou valeurs par défaut
+var BRANDING = { nom:'Entretien C-Net', tel:'418 440-6303', couleur:'#1e4d1a' };
+try {
+  var b = JSON.parse(localStorage.getItem('cnet-branding') || '{}');
+  if (b.nom) BRANDING.nom = b.nom;
+  if (b.tel) BRANDING.tel = b.tel;
+  if (b.couleur) BRANDING.couleur = b.couleur;
+} catch(e) {}
+
+// Contrats depuis localStorage
+var contrats = [];
+try { contrats = JSON.parse(localStorage.getItem('cnet-contrats') || '[]'); } catch(e) {}
+
+var contrat = null;
+var montantHT = 0;
+var totalTTC = 0;
+var modaliteChoisie = '3v';
+var modeChoisi = 'interac';
+var signatureVide = true;
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(init, 600);
+});
+
+function init() {
+  // Chercher le contrat
+  if (!CONTRAT_NUM) {
+    afficherErreur('Aucun numéro de contrat dans le lien.');
+    return;
   }
-  return null;
-}
 
-var wrap = document.getElementById('wrap');
-var c = null; // données du contrat
+  contrat = contrats.find(function(c) { return c.num === CONTRAT_NUM; });
 
-// Essayer d'abord "data" (données encodées dans le lien)
-var dataParam = getParam('data');
-if (dataParam) {
-  try {
-    c = JSON.parse(decodeURIComponent(escape(atob(dataParam))));
-  } catch(e) {
-    try { c = JSON.parse(atob(dataParam)); } catch(e2) { c = null; }
+  if (!contrat) {
+    // Pas dans localStorage — construire depuis les paramètres URL
+    contrat = {
+      num: CONTRAT_NUM,
+      nom: CLIENT_NOM || 'Client',
+      tel: CLIENT_TEL || '',
+      signe: false
+    };
   }
-}
 
-// Fallback: chercher par numéro dans localStorage
-if (!c) {
-  var numParam = getParam('contrat');
-  if (numParam) {
-    try {
-      var contrats = JSON.parse(localStorage.getItem('cnet-contrats') || '[]');
-      c = contrats.find(function(x){ return x.num === numParam; }) || null;
-    } catch(e) { c = null; }
+  if (contrat.signe) {
+    afficherDejaSign();
+    return;
   }
-}
 
-if (!c) {
-  wrap.innerHTML = '<div class="erreur"><div class="erreur-icon">&#128279;</div><h2>Lien invalide</h2><p>Ce lien de signature n\'est pas valide ou a expire.<br>Contacte Entretien C-Net pour recevoir un nouveau lien.</p><br><p style="font-weight:700;color:#1e4d1a">418 440-6303<br>dereck@entretiencnet.com</p></div>';
-} else if (c.signe) {
-  wrap.innerHTML = '<div class="erreur" style="color:inherit"><div class="erreur-icon">&#9989;</div><h2 style="color:#1e4d1a">Deja signe</h2><p>Ce contrat a deja ete signe le <strong>' + fmtD(c.dateSig||c.date) + '</strong>.<br>Contacte Entretien C-Net pour une copie.</p><br><p style="font-weight:700;color:#1e4d1a">418 440-6303<br>dereck@entretiencnet.com</p></div>';
-} else {
-  afficher();
-}
-
-// ── AFFICHER LE CONTRAT ─────────────────────────────────────────────────────
-function afficher() {
-  var tps = Math.round((c.montant||0)*0.05*100)/100;
-  var tvq = Math.round((c.montant||0)*0.09975*100)/100;
-  var tot = Math.round(((c.montant||0)+tps+tvq)*100)/100;
-  var v1=Math.round(tot/3*100)/100, v2=v1, v3=Math.round((tot-v1-v2)*100)/100;
-
-  var svcsHTML = (c.services||[]).map(function(s){
-    var nom = (typeof s === 'object') ? (s.nom || s.name || s.label || JSON.stringify(s)) : s;
-    return '<div class="svc-item">'+nom+'</div>';
-  }).join('') || '<div style="color:#7a9e74;font-size:13px">Services selon la soumission.</div>';
-
-  // Choix de versement et mode de paiement — sélectionné par le client
-  var versChoisi = c.modalitePaiement || '3v';
-  var modeChoisi = c.modePaiement || 'interac';
-
-  wrap.innerHTML =
-    '<div class="etapes">' +
-      '<div class="etape active" id="et1"><div class="ecer">1</div><div class="elbl">Réviser</div></div>' +
-      '<div class="etape" id="et2"><div class="ecer">2</div><div class="elbl">Signer</div></div>' +
-      '<div class="etape" id="et3"><div class="ecer">3</div><div class="elbl">Confirmer</div></div>' +
-    '</div>' +
-
-    '<div id="s1">' +
-      '<div class="card"><div class="card-title">Votre contrat <span style="background:#c8a84b;color:white;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-left:4px">'+(c.num||'')+'</span></div>' +
-        '<div class="info-grid">' +
-          '<div class="info-box"><div class="info-lbl">Client</div><div class="info-val">'+c.nom+'</div></div>' +
-          '<div class="info-box"><div class="info-lbl">Type</div><div class="info-val">'+(c.type==='commercial'?'Commercial':'Résidentiel')+'</div></div>' +
-          '<div class="info-box full"><div class="info-lbl">Adresse des travaux</div><div class="info-val">'+c.adresse+'</div></div>' +
-          '<div class="info-box"><div class="info-lbl">Début</div><div class="info-val">'+fmtD(c.debut)+'</div></div>' +
-          '<div class="info-box"><div class="info-lbl">Fin</div><div class="info-val">'+fmtD(c.fin)+' ('+c.duree+' an'+(c.duree>1?'s':'')+')</div></div>' +
-          '<div class="info-box full"><div class="info-lbl">Montant total (taxes incluses)</div><div class="info-val grand">'+fmt2(tot)+' $</div><div style="font-size:11px;color:#7a9e74;margin-top:2px">Avant taxes : '+fmt2(c.montant||0)+' $ &nbsp;•&nbsp; TPS : '+fmt2(tps)+' $ &nbsp;•&nbsp; TVQ : '+fmt2(tvq)+' $</div></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="card"><div class="card-title">Services inclus</div>'+svcsHTML+'</div>' +
-
-      // ── SECTION CHOIX DU PAIEMENT ─────────────────────────────────────────
-      '<div class="card" id="cardPaiement">' +
-        '<div class="card-title">Choisissez votre mode de paiement</div>' +
-        '<p style="font-size:12px;color:#5a7a52;margin-bottom:14px">Sélectionnez le nombre de versements et le moyen de paiement qui vous convient.</p>' +
-
-        // Versements
-        '<div style="font-size:11px;font-weight:700;color:#1e4d1a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Nombre de versements</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">' +
-          // Carte 1 versement
-          '<div class="choix-card" id="cv-1v" onclick="choisirVers(\'1v\')" style="border:2px solid #dde8d9;border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;background:white">' +
-            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
-              '<div class="radio-dot" id="rd-1v" style="width:16px;height:16px;border-radius:50%;border:2px solid #b0d4a8;flex-shrink:0;transition:all .2s"></div>' +
-              '<div style="font-size:13px;font-weight:700;color:#1a3317">1 versement unique</div>' +
-            '</div>' +
-            '<div id="montant-1v" style="font-size:18px;font-weight:800;color:#1e4d1a">'+fmt2(tot)+' $</div>' +
-            '<div style="font-size:10px;color:#7a9e74;margin-top:2px">TPS + TVQ incluses</div>' +
-          '</div>' +
-          // Carte 3 versements
-          '<div class="choix-card" id="cv-3v" onclick="choisirVers(\'3v\')" style="border:2px solid #dde8d9;border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;background:white">' +
-            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
-              '<div class="radio-dot" id="rd-3v" style="width:16px;height:16px;border-radius:50%;border:2px solid #b0d4a8;flex-shrink:0;transition:all .2s"></div>' +
-              '<div style="font-size:13px;font-weight:700;color:#1a3317">3 versements</div>' +
-            '</div>' +
-            '<div id="montant-3v" style="font-size:13px;color:#1e4d1a;font-weight:600">'+fmt2(v1)+' $ &nbsp;•&nbsp; '+fmt2(v2)+' $ &nbsp;•&nbsp; '+fmt2(v3)+' $</div>' +
-            '<div style="font-size:10px;color:#7a9e74;margin-top:2px">Mai &nbsp;·&nbsp; Juillet &nbsp;·&nbsp; Septembre</div>' +
-          '</div>' +
-        '</div>' +
-
-        // Mode de paiement
-        '<div style="font-size:11px;font-weight:700;color:#1e4d1a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Moyen de paiement</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
-          // Carte Interac
-          '<div class="choix-card" id="cm-interac" onclick="choisirMode(\'interac\')" style="border:2px solid #dde8d9;border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;background:white">' +
-            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
-              '<div class="radio-dot" id="rd-interac" style="width:16px;height:16px;border-radius:50%;border:2px solid #b0d4a8;flex-shrink:0;transition:all .2s"></div>' +
-              '<div style="font-size:13px;font-weight:700;color:#1a3317">Virement Interac</div>' +
-            '</div>' +
-            '<div style="font-size:11px;color:#7a9e74">dereck@entretiencnet.com</div>' +
-          '</div>' +
-          // Carte Chèque
-          '<div class="choix-card" id="cm-cheque" onclick="choisirMode(\'cheque\')" style="border:2px solid #dde8d9;border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;background:white">' +
-            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
-              '<div class="radio-dot" id="rd-cheque" style="width:16px;height:16px;border-radius:50%;border:2px solid #b0d4a8;flex-shrink:0;transition:all .2s"></div>' +
-              '<div style="font-size:13px;font-weight:700;color:#1a3317">Chèque postdaté</div>' +
-            '</div>' +
-            '<div style="font-size:11px;color:#7a9e74">À l\'ordre d\'Entretien C-Net</div>' +
-          '</div>' +
-        '</div>' +
-
-        // Résumé dynamique
-        '<div id="paiResume" style="margin-top:16px;background:#f0fdf4;border-radius:12px;padding:12px;border:1.5px solid #86efac;display:none">' +
-          '<div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px">✅ Votre choix</div>' +
-          '<div id="paiResumeTexte" style="font-size:13px;color:#1a3317"></div>' +
-        '</div>' +
-      '</div>' +
-
-      '<div class="loi25-box">' +
-        '<h3>🔒 Confidentialité et protection de vos données (Loi 25)</h3>' +
-        '<p>En signant ce contrat en ligne, vous consentez à ce que vos informations personnelles (nom, adresse, courriel, téléphone) soient transmises via <strong>GitHub Pages (Microsoft, États-Unis)</strong> uniquement dans le cadre de ce processus de signature électronique. Vos données sont ensuite conservées exclusivement sur les appareils d\'Entretien C-Net, au Canada.</p>' +
-        '<p>Vous pouvez en tout temps demander l\'accès, la correction ou la suppression de vos renseignements en contactant <strong>dereck@entretiencnet.com</strong>.</p>' +
-        '<div class="cb-row"><input type="checkbox" id="cbLoi25" onchange="majBtn()"><label class="cb-lbl" for="cbLoi25">Je consens au traitement de mes données tel que décrit ci-dessus.</label></div>' +
-      '</div>' +
-
-      '<div class="alt-confirm-box">' +
-        '<h3>✉️ Vous préférez ne pas signer en ligne ?</h3>' +
-        '<p>Si vous ne souhaitez pas signer sur ce site, vous pouvez nous envoyer votre acceptation par courriel à <strong>dereck@entretiencnet.com</strong> avec le message suivant :</p>' +
-        '<div class="msg-modele">' +
-          '"Je confirme l\'acceptation du contrat <strong>' + (c.num||'CTR-XXXXX') + '</strong> au nom de <strong>' + (c.nom||'') + '</strong>, en date du ' + new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'}) + '."' +
-        '</div>' +
-        '<button class="copy-btn" onclick="copierMessage()">📋 Copier le message</button>' +
-      '</div>' +
-
-      '<button class="btn-main" id="btnAllerSigner" onclick="allerSigner()" disabled style="opacity:.5">Continuer vers la signature &#8594;</button>' +
-    '</div>' +
-
-    '<div id="s2" style="display:none">' +
-      '<div class="card"><div class="card-title">Signer le contrat</div>' +
-        '<p style="font-size:13px;color:#5a7a52;margin-bottom:16px">Signez dans la zone ci-dessous avec votre souris ou votre doigt.</p>' +
-        '<div class="sig-zone" id="sigZone"><div class="sig-lbl">&#9997;&#65039; Signez ici</div><canvas id="sigCanvas" width="580" height="160"></canvas></div>' +
-        '<div class="sig-actions">' +
-          '<button class="sbtn" onclick="clearSig()">&#128465;&#65039; Effacer</button>' +
-          '<button class="sbtn" onclick="validateSig()">&#9989; Valider ma signature</button>' +
-        '</div>' +
-        '<div class="sig-status" id="sigStatus">Signez ci-dessus puis cliquez Valider.</div>' +
-      '</div>' +
-      '<button class="btn-main" id="btnConfirm" onclick="allerConfirmer()" disabled>Continuer &#8594;</button>' +
-    '</div>' +
-
-    '<div id="s3" style="display:none">' +
-      '<div class="card"><div class="card-title">Confirmer et signer</div>' +
-        '<div class="cb-row"><input type="checkbox" id="cb1" onchange="majBtn()"><label class="cb-lbl" for="cb1">J\'ai lu et j\'accepte toutes les conditions generales du contrat.</label></div>' +
-        '<div class="cb-row"><input type="checkbox" id="cb2" onchange="majBtn()"><label class="cb-lbl" for="cb2">Je confirme que la signature ci-dessus est la mienne et qu\'elle a valeur legale.</label></div>' +
-        '<div class="cb-row"><input type="checkbox" id="cb3" onchange="majBtn()"><label class="cb-lbl" for="cb3">Je comprends que ce contrat m\'engage envers Entretien C-Net pour la duree specifiee.</label></div>' +
-      '</div>' +
-      '<button class="btn-main" id="btnFinal" onclick="finaliser()" disabled>&#128196; Signer et telecharger le PDF</button>' +
-    '</div>';
-
+  remplirInterface();
   initCanvas();
+  document.getElementById('ecran-chargement').style.display = 'none';
+  document.getElementById('ecran-principal').style.display = 'block';
 }
 
-// ── CHOIX MODE DE PAIEMENT ──────────────────────────────────────────────────
-var versChoisiVal = '3v';
-var modeChoisiVal = 'interac';
+function remplirInterface() {
+  var nom = contrat.nom || CLIENT_NOM || 'Client';
+  var num = contrat.num || CONTRAT_NUM;
+  var debut = contrat.debut || '2026-05-15';
+  var fin = contrat.fin || '2026-10-15';
+  var type = contrat.type === 'commercial' ? '🏢 Commercial' : '🏡 Résidentiel';
+  montantHT = parseFloat(contrat.montant) || 0;
+  totalTTC = Math.round(montantHT * 1.14975 * 100) / 100;
 
-function choisirVers(choix) {
-  versChoisiVal = choix;
-  ['1v','3v'].forEach(function(id) {
-    var card = document.getElementById('cv-'+id);
-    var dot = document.getElementById('rd-'+id);
-    if (id === choix) {
-      card.style.border = '2px solid #1e4d1a';
-      card.style.background = '#f0fdf4';
-      dot.style.background = '#1e4d1a';
-      dot.style.border = '2px solid #1e4d1a';
-    } else {
-      card.style.border = '2px solid #dde8d9';
-      card.style.background = 'white';
-      dot.style.background = 'white';
-      dot.style.border = '2px solid #b0d4a8';
-    }
-  });
-  majResumePaiement();
+  // Branding
+  document.getElementById('nom-compagnie').textContent = BRANDING.nom;
+  document.getElementById('sec-compagnie').textContent = BRANDING.nom;
+  document.getElementById('head-titre').textContent = 'Contrat d\'entretien — ' + BRANDING.nom;
+  document.getElementById('head-num').textContent = num;
+
+  // Infos
+  document.getElementById('info-nom').textContent = nom;
+  document.getElementById('info-num').textContent = num;
+  document.getElementById('info-periode').textContent = debut + ' → ' + fin;
+  document.getElementById('info-type').textContent = type;
+  document.getElementById('info-total').textContent = totalTTC > 0 ? fmt(totalTTC) + ' $' : 'Sur devis';
+  document.getElementById('consent-nom').textContent = nom;
+
+  // Services (si disponibles)
+  // On ne les a pas forcément dans l'URL — on affiche juste le total
+
+  // Versements
+  majVersements();
 }
 
-function choisirMode(choix) {
-  modeChoisiVal = choix;
-  ['interac','cheque'].forEach(function(id) {
-    var card = document.getElementById('cm-'+id);
-    var dot = document.getElementById('rd-'+id);
-    if (id === choix) {
-      card.style.border = '2px solid #1e4d1a';
-      card.style.background = '#f0fdf4';
-      dot.style.background = '#1e4d1a';
-      dot.style.border = '2px solid #1e4d1a';
-    } else {
-      card.style.border = '2px solid #dde8d9';
-      card.style.background = 'white';
-      dot.style.background = 'white';
-      dot.style.border = '2px solid #b0d4a8';
-    }
-  });
-  majResumePaiement();
-}
+function majVersements() {
+  var v3 = document.getElementById('versements-3v');
+  var v1 = document.getElementById('versements-1v');
+  var ANNEE = new Date().getFullYear();
 
-function majResumePaiement() {
-  var tps = Math.round((c.montant||0)*0.05*100)/100;
-  var tvq = Math.round((c.montant||0)*0.09975*100)/100;
-  var tot = Math.round(((c.montant||0)+tps+tvq)*100)/100;
-  var v1=Math.round(tot/3*100)/100, v2=v1, v3=Math.round((tot-v1-v2)*100)/100;
-
-  var resume = document.getElementById('paiResume');
-  var texte = document.getElementById('paiResumeTexte');
-  var btn = document.getElementById('btnAllerSigner');
-
-  var versLabel = versChoisiVal === '1v' ? '1 versement unique de <strong>'+fmt2(tot)+' $</strong>' :
-    '3 versements : <strong>'+fmt2(v1)+' $</strong> (mai) &nbsp;·&nbsp; <strong>'+fmt2(v2)+' $</strong> (juil.) &nbsp;·&nbsp; <strong>'+fmt2(v3)+' $</strong> (sept.)';
-  var modeLabel = modeChoisiVal === 'interac' ? 'Virement Interac (dereck@entretiencnet.com)' : 'Chèque postdaté (à l\'ordre d\'Entretien C-Net)';
-
-  texte.innerHTML = versLabel + '<br><span style="color:#5a7a52;font-size:12px">Via ' + modeLabel + '</span>';
-  resume.style.display = 'block';
-
-  // Activer le bouton seulement si les deux sont choisis (toujours vrai ici, mais on garde la logique)
-  btn.disabled = false;
-  btn.style.opacity = '1';
-}
-
-// ── NAVIGATION ──────────────────────────────────────────────────────────────
-function allerSigner() {
-  // Sauvegarder le choix du client dans l'objet c
-  c.modalitePaiement = versChoisiVal;
-  c.modePaiement = modeChoisiVal;
-
-  document.getElementById('s1').style.display='none';
-  document.getElementById('s2').style.display='block';
-  document.getElementById('et1').classList.replace('active','done');
-  document.getElementById('et2').classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
-  setTimeout(function(){ resizeCanvas(); }, 50);
-}
-
-function allerConfirmer() {
-  document.getElementById('s2').style.display='none';
-  document.getElementById('s3').style.display='block';
-  document.getElementById('et2').classList.replace('active','done');
-  document.getElementById('et3').classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function majBtn() {
-  // Bouton continuer vers signature — nécessite consentement Loi 25
-  var cbLoi25 = document.getElementById('cbLoi25');
-  var btnS = document.getElementById('btnAllerSigner');
-  if (cbLoi25 && btnS) {
-    var okLoi25 = cbLoi25.checked && versChoisiVal && modeChoisiVal;
-    btnS.disabled = !okLoi25;
-    btnS.style.opacity = okLoi25 ? '1' : '0.5';
-  }
-  // Bouton final signature
-  var cb1 = document.getElementById('cb1');
-  var cb2 = document.getElementById('cb2');
-  var cb3 = document.getElementById('cb3');
-  var btnF = document.getElementById('btnFinal');
-  if (cb1 && cb2 && cb3 && btnF) {
-    var okF = cb1.checked && cb2.checked && cb3.checked;
-    btnF.disabled = !okF;
-    btnF.style.opacity = okF ? '1' : '0.5';
-  }
-}
-
-function copierMessage() {
-  var msg = 'Je confirme l\'acceptation du contrat ' + (c.num||'') + ' au nom de ' + (c.nom||'') + ', en date du ' + new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'}) + '.';
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(msg).then(function(){ alert('Message copié ! Collez-le dans votre courriel à dereck@entretiencnet.com'); });
+  if (totalTTC > 0) {
+    var p1 = Math.round(totalTTC/3*100)/100;
+    var p2 = p1;
+    var p3 = Math.round((totalTTC - p1*2)*100)/100;
+    v3.innerHTML =
+      vRow('1er versement', fmt(p1)+' $', ANNEE+'-05-01') +
+      vRow('2e versement',  fmt(p2)+' $', ANNEE+'-07-01') +
+      vRow('3e versement',  fmt(p3)+' $', ANNEE+'-09-01');
+    v1.innerHTML = vRow('Versement unique', fmt(totalTTC)+' $', ANNEE+'-05-01');
   } else {
-    prompt('Copiez ce message :', msg);
+    v3.innerHTML = v1.innerHTML = '<div class="v-row"><span class="v-lbl">Montant à confirmer par Entretien C-Net</span></div>';
   }
 }
 
-// ── CANVAS SIGNATURE ────────────────────────────────────────────────────────
-var drawing = false, lastX = 0, lastY = 0;
-var canvas, ctx, sigValidated = false, sigData = null;
+function vRow(lbl, montant, date) {
+  return '<div class="v-row">' +
+    '<span class="v-lbl">' + lbl + '</span>' +
+    '<div style="text-align:right;">' +
+      '<div class="v-montant">' + montant + '</div>' +
+      '<div class="v-date">' + date + '</div>' +
+    '</div></div>';
+}
+
+function fmt(n) {
+  return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,' ').replace('.',',');
+}
+
+// ════════════════════════════════════════════
+// CHOIX MODALITÉ / MODE
+// ════════════════════════════════════════════
+function choisirModalite(val) {
+  modaliteChoisie = val;
+  ['3v','1v'].forEach(function(v) {
+    document.getElementById('opt-' + v).classList.toggle('sel', v === val);
+    var el = document.getElementById('versements-' + v);
+    if (el) el.classList.toggle('show', v === val);
+  });
+}
+
+function choisirMode(val) {
+  modeChoisi = val;
+  ['interac','cheque'].forEach(function(v) {
+    document.getElementById('mode-' + v).classList.toggle('sel', v === val);
+  });
+}
+
+// ════════════════════════════════════════════
+// CANVAS SIGNATURE
+// ════════════════════════════════════════════
+var canvas, ctx, dessin = false, points = [];
 
 function initCanvas() {
-  canvas = document.getElementById('sigCanvas');
-  if (!canvas) return;
+  canvas = document.getElementById('sig-canvas');
   ctx = canvas.getContext('2d');
-  setCtxStyle();
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 200 * dpr;
+  ctx.scale(dpr, dpr);
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '200px';
+  ctx.strokeStyle = '#1a2e18';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
 
-  function getPos(e) {
-    var r = canvas.getBoundingClientRect();
-    var sx = canvas.width/r.width, sy = canvas.height/r.height;
-    if (e.touches) return {x:(e.touches[0].clientX-r.left)*sx, y:(e.touches[0].clientY-r.top)*sy};
-    return {x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy};
-  }
-  function draw(e) {
-    if (!drawing) return;
-    var p = getPos(e);
-    ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
-    lastX=p.x; lastY=p.y;
-    document.getElementById('sigZone').classList.add('drawing');
-  }
-  canvas.addEventListener('mousedown',function(e){drawing=true;var p=getPos(e);lastX=p.x;lastY=p.y;});
-  canvas.addEventListener('mousemove',draw);
-  canvas.addEventListener('mouseup',function(){drawing=false;});
-  canvas.addEventListener('mouseleave',function(){drawing=false;});
-  canvas.addEventListener('touchstart',function(e){e.preventDefault();drawing=true;var p=getPos(e);lastX=p.x;lastY=p.y;},{passive:false});
-  canvas.addEventListener('touchmove',function(e){e.preventDefault();draw(e);},{passive:false});
-  canvas.addEventListener('touchend',function(){drawing=false;},{passive:false});
+  // Souris
+  canvas.addEventListener('mousedown', function(e) { startDraw(e.offsetX, e.offsetY); });
+  canvas.addEventListener('mousemove', function(e) { if(dessin) draw(e.offsetX, e.offsetY); });
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+
+  // Tactile
+  canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    var t = e.touches[0], r = canvas.getBoundingClientRect();
+    startDraw(t.clientX - r.left, t.clientY - r.top);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    var t = e.touches[0], r = canvas.getBoundingClientRect();
+    if(dessin) draw(t.clientX - r.left, t.clientY - r.top);
+  }, { passive: false });
+  canvas.addEventListener('touchend', stopDraw);
 }
 
-function setCtxStyle() {
-  ctx.strokeStyle='#1e4d1a'; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.lineJoin='round';
+function startDraw(x, y) {
+  dessin = true;
+  ctx.beginPath(); ctx.moveTo(x, y);
+  points.push([x, y]);
+  document.getElementById('sig-placeholder').classList.add('hidden');
 }
-
-function resizeCanvas() {
-  if (!canvas) return;
-  var w = canvas.offsetWidth;
-  if (w > 0 && canvas.width !== w) {
-    var imgData = ctx ? ctx.getImageData(0,0,canvas.width,canvas.height) : null;
-    canvas.width = w;
-    canvas.height = 160;
-    setCtxStyle();
+function draw(x, y) {
+  if (!dessin) return;
+  ctx.lineTo(x, y); ctx.stroke();
+  points.push([x, y]);
+}
+function stopDraw() {
+  if (!dessin) return;
+  dessin = false;
+  if (points.length > 5) {
+    signatureVide = false;
+    document.getElementById('sig-status').textContent = '✅ Signature enregistrée';
+    majBouton();
   }
 }
-
-function clearSig() {
-  if (!canvas) return;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  sigValidated=false; sigData=null;
-  document.getElementById('sigStatus').textContent='Signez ci-dessus puis cliquez Valider.';
-  document.getElementById('sigStatus').className='sig-status';
-  document.getElementById('btnConfirm').disabled=true;
-  document.getElementById('sigZone').classList.remove('drawing');
+function effacerSig() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  points = []; signatureVide = true;
+  document.getElementById('sig-placeholder').classList.remove('hidden');
+  document.getElementById('sig-status').textContent = '';
+  majBouton();
 }
 
-function validateSig() {
-  if (!canvas) return;
-  var blank = document.createElement('canvas');
-  blank.width=canvas.width; blank.height=canvas.height;
-  if (canvas.toDataURL()===blank.toDataURL()) { alert('Veuillez signer avant de valider.'); return; }
-  sigValidated=true;
-  sigData=canvas.toDataURL('image/png');
-  document.getElementById('sigStatus').textContent='✅ Signature validee — '+new Date().toLocaleString('fr-CA');
-  document.getElementById('sigStatus').className='sig-status ok';
-  document.getElementById('btnConfirm').disabled=false;
+// ════════════════════════════════════════════
+// ACTIVATION BOUTON
+// ════════════════════════════════════════════
+function majBouton() {
+  var ok = !signatureVide && document.getElementById('consent-check').checked;
+  document.getElementById('btn-signer').disabled = !ok;
 }
 
-// ── FINALISER + PDF ─────────────────────────────────────────────────────────
-function finaliser() {
-  if (!window.jspdf||!window.jspdf.jsPDF) { alert('jsPDF pas encore charge, reessaie dans 3 secondes.'); return; }
-  var today = new Date().toISOString().split('T')[0];
-  var tps = Math.round((c.montant||0)*0.05*100)/100;
-  var tvq = Math.round((c.montant||0)*0.09975*100)/100;
-  var tot = Math.round(((c.montant||0)+tps+tvq)*100)/100;
-  var v1=Math.round(tot/3*100)/100, v2=v1, v3=Math.round((tot-v1-v2)*100)/100;
+// ════════════════════════════════════════════
+// SOUMISSION
+// ════════════════════════════════════════════
+function soumettre() {
+  var btn = document.getElementById('btn-signer');
+  btn.disabled = true;
+  btn.textContent = '⏳ Enregistrement…';
 
-  var doc = new window.jspdf.jsPDF({unit:'mm',format:'a4'});
-  var LOGO_B64_PDF = (function(){
-    var imgs = document.querySelectorAll('img[src*="data:image"]');
-    for(var i=0;i<imgs.length;i++){
-      var src=imgs[i].src||'';
-      if(src.length>100) return src.replace(/^data:image\/[^;]+;base64,/,'');
-    }
-    return '';
-  })();
-  var W=210, M=14, CW=W-M*2;
+  var today = new Date().toLocaleDateString('fr-CA');
+  var nom = contrat.nom || CLIENT_NOM || 'Client';
 
-  // ── HEADER compact 36mm ──
-  doc.setFillColor(30,77,26); doc.rect(0,0,W,36,'F');
-  doc.setFillColor(200,168,75); doc.rect(0,34,W,2,'F');
-  // Logo
-  try { doc.addImage('data:image/jpeg;base64,'+LOGO_B64_PDF,'JPEG',M,4,22,22); } catch(e){}
-  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
-  doc.text('ENTRETIEN C-NET',M+26,13);
-  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(168,213,162);
-  doc.text('Entretien paysager - Quebec',M+26,20);
-  doc.text('418 440-6303  -  dereck@entretiencnet.com  -  entretiencnet.com',M+26,26);
-  doc.text('9960, rue de Dakar #202, Quebec (QC) G2B 0T5',M+26,31);
-  doc.setFillColor(200,168,75); doc.rect(W-M-46,8,46,11,'F');
-  doc.setTextColor(26,16,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
-  doc.text('CONTRAT SIGNE',W-M-23,15,{align:'center'});
-  doc.setTextColor(200,168,75); doc.setFontSize(7.5);
-  doc.text(c.num||'',W-M,24,{align:'right'});
-  doc.setFont('helvetica','normal'); doc.setTextColor(168,213,162); doc.setFontSize(7);
-  doc.text('Signe le : '+fmtD(today),W-M,30,{align:'right'});
+  // Marquer signé dans localStorage
+  var idx = contrats.findIndex(function(c) { return c.num === CONTRAT_NUM; });
+  var ANNEE = new Date().getFullYear();
+  var p1 = Math.round(totalTTC/3*100)/100;
+  var p3 = Math.round((totalTTC-p1*2)*100)/100;
+  var versements = modaliteChoisie === '1v'
+    ? [{ num:1, label:'Versement unique', date:ANNEE+'-05-01', montant:totalTTC, recu:false }]
+    : [
+        { num:1, label:'1er versement', date:ANNEE+'-05-01', montant:p1, recu:false },
+        { num:2, label:'2e versement',  date:ANNEE+'-07-01', montant:p1, recu:false },
+        { num:3, label:'3e versement',  date:ANNEE+'-09-01', montant:p3, recu:false }
+      ];
 
-  // ── PIED DE PAGE ──
-  function ftr() {
-    doc.setFillColor(30,77,26); doc.rect(0,281,W,16,'F');
-    doc.setTextColor(168,213,162); doc.setFontSize(7); doc.setFont('helvetica','normal');
-    doc.text('Entretien C-Net  -  '+(c.num||''),W/2,287,{align:'center'});
-    doc.setTextColor(200,168,75);
-    doc.text('418 440-6303  -  dereck@entretiencnet.com  -  entretiencnet.com',W/2,293,{align:'center'});
+  if (idx >= 0) {
+    contrats[idx].signe = true;
+    contrats[idx].dateSig = today;
+    contrats[idx].modalitePaiement = modaliteChoisie;
+    contrats[idx].modePaiement = modeChoisi;
+    contrats[idx].versements = versements;
+    localStorage.setItem('cnet-contrats', JSON.stringify(contrats));
   }
 
-  var y = 42; // départ après header
-
-  // ── PARTIES (2 colonnes côte à côte, compact) ──
-  var hw = CW/2-3;
-  doc.setFillColor(245,250,244); doc.rect(M,y,hw,20,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7);
-  doc.text('PRESTATAIRE',M+2,y+5);
-  doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
-  doc.text('Entretien C-Net / Dereck - 418 440-6303',M+2,y+10);
-  doc.text('dereck@entretiencnet.com',M+2,y+16);
-  var cx=M+hw+6;
-  doc.setFillColor(245,250,244); doc.rect(cx,y,hw,20,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7);
-  doc.text('CLIENT',cx+2,y+5);
-  doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
-  doc.text(c.nom+(c.tel?' - '+c.tel:''),cx+2,y+10);
-  if(c.email) doc.text(c.email,cx+2,y+16);
-  y+=22;
-
-  // ── INFOS (3 lignes compactes) ──
-  var rows=[
-    ['ADRESSE DES TRAVAUX', c.adresse||''],
-    ['TYPE DE CLIENT', c.type==='commercial'?'Commercial':'Residentiel'],
-    ['PERIODE DU CONTRAT', fmtD(c.debut)+' au '+fmtD(c.fin)+' ('+c.duree+' an'+(c.duree>1?'s':'')+')']
-  ];
-  rows.forEach(function(r,i){
-    doc.setFillColor(i%2===0?240:247,i%2===0?247:252,i%2===0?238:245);
-    doc.rect(M,y,CW,7,'F');
-    doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7);
-    doc.text(r[0],M+2,y+5);
-    doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
-    doc.text(r[1],W-M-2,y+5,{align:'right'});
-    y+=8;
-  });
-  y+=3;
-
-  // ── SERVICES INCLUS avec prix ──
-  doc.setFillColor(30,77,26); doc.rect(M,y,CW,7,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setFontSize(7.5);
-  doc.text('SERVICES INCLUS',M+3,y+4.8);
-  doc.text('PRIX UNITAIRE',W-M-40,y+4.8);
-  doc.text('AVEC TAXES',W-M-3,y+4.8,{align:'right'});
-  y+=8;
-  var svcs = c.services||[];
-  var tpsRate=0.05, tvqRate=0.09975;
-  svcs.forEach(function(s,i){
-    var snom=(typeof s==='object')?(s.nom||s.name||s.label||'Service'):s;
-    var sprix=(typeof s==='object')?(parseFloat(s.prix||0)):0;
-    var sprixTaxes=Math.round(sprix*(1+tpsRate+tvqRate)*100)/100;
-    var snomT=snom.length>50?snom.slice(0,48)+'...':snom;
-    doc.setFillColor(i%2===0?247:255,i%2===0?252:255,i%2===0?245:255);
-    doc.rect(M,y,CW,7,'F');
-    doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
-    doc.text('✓  '+snomT,M+2,y+4.8);
-    if(sprix>0){
-      doc.setTextColor(80,100,78);
-      doc.text(fmt2(sprix)+' $',W-M-43,y+4.8);
-      doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26);
-      doc.text(fmt2(sprixTaxes)+' $',W-M-2,y+4.8,{align:'right'});
-    }
-    y+=7;
-  });
-  y+=4;
-
-  // ── RÉCAPITULATIF TAXES ──
-  doc.setFillColor(240,248,238); doc.rect(M,y,CW,22,'F');
-  doc.setDrawColor(180,210,175); doc.setLineWidth(0.3); doc.rect(M,y,CW,22);
-  doc.setFont('helvetica','normal'); doc.setTextColor(60,90,55); doc.setFontSize(7.5);
-  doc.text('Sous-total (avant taxes) :',M+3,y+6);
-  doc.text(fmt2(c.montant||0)+' $',W-M-3,y+6,{align:'right'});
-  doc.text('TPS (5 %) :',M+3,y+12);
-  doc.text(fmt2(tps)+' $',W-M-3,y+12,{align:'right'});
-  doc.text('TVQ (9,975 %) :',M+3,y+18);
-  doc.text(fmt2(tvq)+' $',W-M-3,y+18,{align:'right'});
-  y+=24;
-
-  // ── MONTANT TOTAL ──
-  doc.setFillColor(30,77,26); doc.rect(M,y,CW,10,'F');
-  doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setFontSize(10);
-  doc.text('MONTANT TOTAL (TPS + TVQ incluses)',M+3,y+7);
-  doc.setTextColor(200,168,75);
-  doc.text(fmt2(tot)+' $',W-M-3,y+7,{align:'right'});
-  doc.setFont('helvetica','normal'); doc.setFontSize(6);
-  doc.setTextColor(168,210,163);
-  doc.text('TPS No 745168070RT0001  |  TVQ No 1227303871TQ0001',W-M-3,y+9.5,{align:'right'});
-  y+=13;
-
-  // ── PAIEMENT ──
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7.5);
-  doc.text('MODALITES DE PAIEMENT',M,y);
-  doc.setDrawColor(200,168,75); doc.line(M,y+1.5,M+44,y+1.5);
-  y+=6;
-  var mLbl=c.modePaiement==='interac'?'Virement Interac - dereck@entretiencnet.com':'Cheque - a l\'ordre d\'Entretien C-Net';
-  var modal=c.modalitePaiement;
-  if(modal==='3v'||modal==='3versements'){
-    doc.setFillColor(255,248,225); doc.rect(M,y,CW,7,'F');
-    doc.setFont('helvetica','bold'); doc.setTextColor(140,100,10); doc.setFontSize(7.5);
-    doc.text('3 versements  -  '+mLbl,M+2,y+5); y+=8;
-    [{l:'1er mai',v:v1},{l:'1er juillet',v:v2},{l:'1er sept.',v:v3}].forEach(function(vv,i){
-      doc.setFillColor(i%2===0?247:255,i%2===0?252:255,i%2===0?245:255);
-      doc.rect(M,y,CW,6,'F');
-      doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
-      doc.text((i+1)+'e versement - '+vv.l+' 2026',M+2,y+4);
-      doc.setFont('helvetica','bold'); doc.text(fmt2(vv.v)+' $',W-M-2,y+4,{align:'right'}); y+=7;
-    });
-    doc.setFillColor(30,77,26); doc.rect(M,y,CW,8,'F');
-    doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setFontSize(8.5);
-    doc.text('TOTAL TAXES INCLUSES',M+3,y+4); doc.setFontSize(6); doc.text('TPS No 745168070RT0001  |  TVQ No 1227303871TQ0001',M+3,y+8);
-    doc.text(fmt2(tot)+' $',W-M-3,y+5.5,{align:'right'}); y+=10;
-  } else {
-    doc.setFillColor(237,247,234); doc.rect(M,y,CW,8,'F');
-    doc.setFont('helvetica','normal'); doc.setTextColor(20,40,18); doc.setFontSize(7.5);
-    doc.text('Paiement unique  -  '+mLbl,M+2,y+5);
-    doc.setFillColor(30,77,26); doc.rect(M,y+9,CW,8,'F');
-    doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setFontSize(8.5);
-    doc.text('TOTAL TAXES INCLUSES',M+3,y+13); doc.setFontSize(6); doc.text('TPS No 745168070RT0001  |  TVQ No 1227303871TQ0001',M+3,y+17);
-    doc.text(fmt2(tot)+' $',W-M-3,y+14.5,{align:'right'}); y+=19;
-  }
-  y+=4;
-
-  // ── SIGNATURES ──
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7.5);
-  doc.text('SIGNATURES',M,y);
-  doc.setDrawColor(200,168,75); doc.line(M,y+1.5,M+22,y+1.5);
-  y+=5;
-
-  var sigW=CW/2-4, sigX=M+sigW+8, sigH=42;
-
-  // Boite entrepreneur
-  doc.setFillColor(245,250,244); doc.rect(M,y,sigW,sigH,'F');
-  doc.setDrawColor(180,210,175); doc.setLineWidth(0.3); doc.rect(M,y,sigW,sigH);
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7.5);
-  doc.text('ENTRETIEN C-NET - Dereck',M+3,y+6);
-  doc.setDrawColor(130,170,125); doc.setLineWidth(0.5);
-  doc.line(M+3,y+34,M+sigW-3,y+34);
-  doc.setFont('helvetica','normal'); doc.setTextColor(100,130,95); doc.setFontSize(6.5);
-  doc.text('Signature du prestataire',M+3,y+39);
-
-  // Boite client
-  doc.setFillColor(245,250,244); doc.rect(sigX,y,sigW,sigH,'F');
-  doc.setDrawColor(180,210,175); doc.setLineWidth(0.3); doc.rect(sigX,y,sigW,sigH);
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(7.5);
-  doc.text('CLIENT - '+c.nom,sigX+3,y+6);
-  if (sigData) {
-    try { doc.addImage(sigData,'PNG',sigX+3,y+8,sigW-8,20); } catch(e){}
-  }
-  doc.setDrawColor(130,170,125); doc.setLineWidth(0.5);
-  doc.line(sigX+3,y+34,sigX+sigW-3,y+34);
-  doc.setFont('helvetica','normal'); doc.setTextColor(100,130,95); doc.setFontSize(6.5);
-  doc.text('Signe electroniquement le '+fmtD(today),sigX+3,y+39);
-  y+=sigH+3;
-
-  // ── CLAUSE ──
-  doc.setFillColor(235,248,232); doc.rect(M,y,CW,8,'F');
-  doc.setDrawColor(30,77,26); doc.setLineWidth(0.3); doc.rect(M,y,CW,8);
-  doc.setFillColor(30,77,26); doc.rect(M,y,2.5,8,'F');
-  doc.setFont('helvetica','italic'); doc.setFontSize(6.5); doc.setTextColor(40,80,35);
-  doc.text('En signant, le client confirme avoir lu et accepte les services, les prix et les conditions du contrat.',M+5,y+5.5);
-  y+=10;
-
-  ftr();
-
-  // ── PAGE 2 CONDITIONS ──
-  doc.addPage();
-  doc.setFillColor(30,77,26); doc.rect(0,0,W,36,'F');
-  doc.setFillColor(200,168,75); doc.rect(0,34,W,2,'F');
-  try { doc.addImage('data:image/jpeg;base64,'+LOGO_B64_PDF,'JPEG',M,4,22,22); } catch(e){}
-  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
-  doc.text('ENTRETIEN C-NET',M+26,13);
-  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(168,213,162);
-  doc.text('Entretien paysager - Quebec',M+26,20);
-  doc.text('418 440-6303  -  dereck@entretiencnet.com  -  entretiencnet.com',M+26,26);
-  doc.text('9960, rue de Dakar #202, Quebec (QC) G2B 0T5',M+26,31);
-  doc.setFillColor(200,168,75); doc.rect(W-M-46,8,46,11,'F');
-  doc.setTextColor(26,16,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
-  doc.text('CONTRAT SIGNE',W-M-23,15,{align:'center'});
-  doc.setTextColor(200,168,75); doc.setFontSize(7.5);
-  doc.text(c.num||'',W-M,24,{align:'right'});
-  y=44;
-  doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(9);
-  doc.text('CONDITIONS GENERALES DU CONTRAT',M,y); y+=3;
-  doc.setDrawColor(200,168,75); doc.line(M,y,M+80,y); y+=7;
-  var clauses=[
-    {t:'1. Objet du contrat',x:'Entretien C-Net s engage a fournir les services d entretien paysager decrits dans ce contrat a l adresse indiquee, selon les modalites convenues. Les travaux seront executes de maniere professionnelle.'},
-    {t:'2. Periode de service',x:'La saison de tonte s etend du 15 mai au 15 octobre. Les services additionnels sont effectues aux dates convenues. Les dates peuvent etre ajustees en cas de conditions meteorologiques exceptionnelles.'},
-    {t:'3. Prix et paiement',x:'Le montant est fixe tel qu indique. Les taxes (TPS 5% et TVQ 9.975%) s ajoutent. Tout solde impaye apres 30 jours entraine des frais de 2% par mois. Frais de 45 $ pour tout cheque retourne.'},
-    {t:'4. Annulation et resiliation',x:'Toute annulation doit etre transmise par ecrit avec un preavis de 30 jours. Des frais de 15% peuvent s appliquer. En cours de saison, le client est redevable des services deja rendus.'},
-    {t:'5. Responsabilites et assurances',x:'Entretien C-Net detient une assurance responsabilite civile. Le client doit signaler tout obstacle, cable ou danger avant les travaux. Entretien C-Net ne peut etre responsable des elements non signales.'},
-    {t:'6. Renouvellement du contrat',x:'Sauf avis contraire ecrit 30 jours avant l echeance, ce contrat est reconduit automatiquement aux memes conditions. Pour les contrats 2 ou 3 ans, le prix est garanti sans augmentation.'},
-    {t:'7. Conditions meteorologiques',x:'Les services peuvent etre reportes sans penalite en cas de conditions rendant les travaux impossibles. Entretien C-Net s engage a effectuer les travaux reportes dans les meilleurs delais.'},
-    {t:'8. Acces aux proprietes',x:'Le client assure un acces libre et securitaire aux zones de travail. Tout animal doit etre tenu a l ecart. Un acces bloque sera considere comme une visite effectuee et facture.'},
-  ];
-  clauses.forEach(function(cl,idx){
-    var lines=doc.splitTextToSize(cl.x,CW-10);
-    var bH=6+lines.length*4.5+5;
-    doc.setFillColor(idx%2===0?247:242,idx%2===0?252:249,idx%2===0?245:240);
-    doc.rect(M,y,CW,bH,'F');
-    doc.setFillColor(30,77,26); doc.rect(M,y,2.5,bH,'F');
-    doc.setFont('helvetica','bold'); doc.setTextColor(30,77,26); doc.setFontSize(8);
-    doc.text(cl.t,M+6,y+5.5);
-    doc.setFont('helvetica','normal'); doc.setTextColor(50,80,45); doc.setFontSize(7.5);
-    doc.text(lines,M+6,y+11);
-    y+=bH+3;
-  });
-  // Note signature bas de page 2
-  doc.setFillColor(240,247,238); doc.rect(M,y,CW,8,'F');
-  doc.setFont('helvetica','italic'); doc.setTextColor(60,100,55); doc.setFontSize(7);
-  doc.text('Signature electronique realisee le '+fmtD(today)+' par '+c.nom+'.',M+3,y+5.5);
-  ftr();
-
-  doc.save('contrat-signe-cnet-'+(c.nom||'client').replace(/\s+/g,'-')+'-'+(c.num||'')+'.pdf');
-
-  // ── CONFIRMATION AUTOMATIQUE dans localStorage ────────────────────────────
-  // Met à jour cnet-contrats et cnet-clients immédiatement après la signature
-  (function confirmerAuto() {
-    try {
-      var today = new Date().toISOString().split('T')[0];
-      var tps = Math.round((c.montant||0)*0.05*100)/100;
-      var tvq = Math.round((c.montant||0)*0.09975*100)/100;
-      var tot = Math.round(((c.montant||0)+tps+tvq)*100)/100;
-      var v1 = Math.round(tot/3*100)/100;
-      var v2 = v1;
-      var v3 = Math.round((tot-v1-v2)*100)/100;
-      var ANNEE = new Date().getFullYear();
-
-      // 1. Mettre à jour cnet-contrats
-      var contrats = [];
-      try { contrats = JSON.parse(localStorage.getItem('cnet-contrats') || '[]'); } catch(e) {}
-      var ic = contrats.findIndex(function(x){ return x.num === c.num; });
-      var contratObj = {
-        nom:c.nom, tel:c.tel||'', email:c.email||'', adresse:c.adresse||'',
-        type:c.type||'residentiel', montant:c.montant||0,
-        services:c.services||[], date:c.date||today,
-        signe:true, dateSig:today,
-        num:c.num||('CTR-'+Date.now().toString().slice(-5)),
-        modePaiement:c.modePaiement||'interac',
-        modalitePaiement:c.modalitePaiement||'3v',
-        paiementComplet:false, acompte:c.acompte||0,
-        duree:c.duree||1, debut:c.debut||'', fin:c.fin||'',
-        notes:c.notes||''
-      };
-      if (c.modalitePaiement === '1v') {
-        contratObj.paiementUnique = { montant:tot, recu:false, date:today };
-        contratObj.versements = [];
-      } else {
-        contratObj.versements = [
-          {num:1, label:'1er versement', date:ANNEE+'-05-01', montant:v1, recu:false},
-          {num:2, label:'2e versement',  date:ANNEE+'-07-01', montant:v2, recu:false},
-          {num:3, label:'3e versement',  date:ANNEE+'-09-01', montant:v3, recu:false}
-        ];
-      }
-      if (ic !== -1) {
-        Object.assign(contrats[ic], contratObj);
-      } else {
-        contrats.push(contratObj);
-      }
-      localStorage.setItem('cnet-contrats', JSON.stringify(contrats));
-
-      // 2. Mettre à jour cnet-clients
-      var clients = [];
-      try { clients = JSON.parse(localStorage.getItem('cnet-clients') || '[]'); } catch(e) {}
-      var nomN = (c.nom||'').toLowerCase().trim();
-      var telN = (c.tel||'').replace(/\D/g,'');
-      var iCl = clients.findIndex(function(cl){
-        return (cl.nom && cl.nom.toLowerCase().trim() === nomN) ||
-               (telN && cl.tel && cl.tel.replace(/\D/g,'') === telN);
-      });
-      var svcNoms = (c.services||[]).map(function(s){
-        return typeof s === 'object' ? (s.nom||s.name||'Service') : s;
-      });
-      var clientObj = {
-        nom:c.nom, tel:c.tel||'', email:c.email||'', adresse:c.adresse||'',
-        type:c.type||'residentiel', montant:c.montant||0,
-        services:svcNoms, contrat:c.duree||1,
-        contratNum:c.num||'', date:c.date||today,
-        statut:'acceptee', dateSig:today,
-        modePaiement:c.modePaiement||'interac',
-        modalitePaiement:c.modalitePaiement||'3v',
-        notes:c.notes||''
-      };
-      if (iCl !== -1) {
-        Object.assign(clients[iCl], clientObj);
-      } else {
-        clients.push(clientObj);
-      }
-      localStorage.setItem('cnet-clients', JSON.stringify(clients));
-
-    } catch(e) {
-      console.warn('confirmerAuto:', e);
-    }
-  })();
-
-  // Envoyer courriel de notification automatiquement
-  setTimeout(function() { envoyerConfirmation(); }, 1200);
-
-  // ── ÉCRAN DE SUCCÈS ──────────────────────────────────────────────────────
+  // Afficher succès
   setTimeout(function() {
-    var tps2 = Math.round((c.montant||0)*0.05*100)/100;
-    var tvq2 = Math.round((c.montant||0)*0.09975*100)/100;
-    var tot2 = Math.round(((c.montant||0)+tps2+tvq2)*100)/100;
-    var modeLabel = c.modePaiement==='interac' ? 'Virement Interac' : 'Chèque postdaté';
-    var modalLabel = (c.modalitePaiement==='1v') ? '1 versement unique de '+fmt2(tot2)+' $' : '3 versements de '+fmt2(Math.round(tot2/3*100)/100)+' $';
-
-    var today2 = new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'});
-    var s3 = document.getElementById('s3');
-    s3.innerHTML =
-      '<div class="succes">' +
-        '<div class="succes-icon">✅</div>' +
-        '<h2>Contrat signé avec succès !</h2>' +
-        '<p>Merci <strong>' + c.nom + '</strong>, votre contrat <strong>' + (c.num||'') + '</strong> a été signé le ' + today2 + '.<br>Votre PDF a été téléchargé automatiquement.</p>' +
-        '<div style="background:#f0fdf4;border:2px solid #1e4d1a;border-radius:14px;padding:18px 20px;margin:16px 0;text-align:left">' +
-          '<div style="font-size:12px;font-weight:700;color:#1e4d1a;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Récapitulatif</div>' +
-          '<div style="display:grid;gap:6px">' +
-            '<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#5a7a52">Mode de paiement</span><strong>' + modeLabel + '</strong></div>' +
-            '<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#5a7a52">Versements</span><strong>' + modalLabel + '</strong></div>' +
-            '<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#5a7a52">Total (taxes incl.)</span><strong style="color:#1e4d1a;font-size:16px">' + fmt2(tot2) + ' $</strong></div>' +
-          '</div>' +
-        '</div>' +
-        '<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#166534;font-weight:600">' +
-          '✅ Entretien C-Net a été notifié automatiquement. Vous n\'avez rien d\'autre à faire !' +
-        '</div>' +
-        '<p style="font-size:11px;color:#a0b89a;margin-top:8px">Entretien C-Net · 418 440-6303 · entretiencnet.com</p>' +
-      '</div>';
-  }, 500);
-}
-// ── UTILITAIRES ─────────────────────────────────────────────────────────────
-function fmt2(n){ return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0'); }
-function fmtD(d){
-  if(!d)return '-';
-  var p=d.split('-');
-  var mo=['janv','fevr','mars','avr','mai','juin','juil','aout','sept','oct','nov','dec'];
-  return parseInt(p[2])+' '+mo[parseInt(p[1])-1]+' '+p[0];
+    document.getElementById('s-nom').textContent = nom;
+    document.getElementById('s-num').textContent = CONTRAT_NUM;
+    document.getElementById('s-modalite').textContent = modaliteChoisie === '1v' ? '1 versement unique' : '3 versements';
+    document.getElementById('s-mode').textContent = modeChoisi === 'interac' ? 'Interac' : 'Chèque';
+    document.getElementById('s-total').textContent = totalTTC > 0 ? fmt(totalTTC) + ' $' : 'Sur devis';
+    document.getElementById('s-date').textContent = today;
+    document.getElementById('s-tel').textContent = BRANDING.tel;
+    document.getElementById('ecran-principal').style.display = 'none';
+    document.getElementById('ecran-succes').style.display = 'block';
+    window.scrollTo(0, 0);
+  }, 1000);
 }
 
-function envoyerConfirmation() {
-  // Envoyer courriel de notification simple — sans lien local
-  var today = new Date().toISOString().split('T')[0];
-  var tps = Math.round((c.montant||0)*0.05*100)/100;
-  var tvq = Math.round((c.montant||0)*0.09975*100)/100;
-  var tot = Math.round(((c.montant||0)+tps+tvq)*100)/100;
-  var modeLabel = c.modePaiement==='interac' ? 'Virement Interac' : 'Chèque postdaté';
-  var modalLabel = (c.modalitePaiement==='1v') ? '1 versement unique' : '3 versements';
-  var dateStr = new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'});
+// ════════════════════════════════════════════
+// ÉCRANS ALTERNATIFS
+// ════════════════════════════════════════════
+function afficherDejaSign() {
+  document.getElementById('ecran-chargement').style.display = 'none';
+  document.getElementById('deja-tel').textContent = BRANDING.tel;
+  document.getElementById('ecran-deja').style.display = 'block';
+}
 
-  // Construire le lien de confirmation magique
-  var confirmData = {
-    num: c.num||'',
-    nom: c.nom||'',
-    tel: c.tel||'',
-    email: c.email||'',
-    adresse: c.adresse||'',
-    montant: c.montant||0,
-    dateSig: today,
-    modePaiement: c.modePaiement||'interac',
-    modalitePaiement: c.modalitePaiement||'3v',
-    contratNum: c.num||''
-  };
-  var confirmEncode = btoa(unescape(encodeURIComponent(JSON.stringify(confirmData))));
-  // Lien magique — détecte dynamiquement le chemin de suivi-clients-cnet.html
-  var baseUrl = window.location.href.replace(/signature-cnet\.html.*$/, 'suivi-clients-cnet.html');
-  var lienConfirm = baseUrl + '?confirmsig=' + confirmEncode;
-
-  var sujet = '✅ Contrat signé — ' + (c.num||'') + ' — ' + (c.nom||'');
-  var corps =
-    'Bonjour Jeff & Dereck,\n\n' +
-    '✅ ' + (c.nom||'') + ' a signé le contrat ' + (c.num||'') + ' le ' + dateStr + '.\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'DÉTAILS DU CONTRAT :\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    '• Contrat : ' + (c.num||'') + '\n' +
-    '• Client : ' + (c.nom||'') + '\n' +
-    '• Mode de paiement : ' + modeLabel + '\n' +
-    '• Versements : ' + modalLabel + '\n' +
-    '• Total (taxes incluses) : ' + fmt2(tot) + ' $\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'ACTION REQUISE — CONFIRMER DANS VOTRE SYSTÈME :\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
-    'Copiez ce lien et collez-le dans votre navigateur\n' +
-    'pour confirmer la signature dans le suivi clients :\n\n' +
-    lienConfirm + '\n\n' +
-    '(Ouvrez ce fichier sur votre ordinateur, puis collez\n' +
-    'le lien ci-dessus dans la barre d\'adresse du navigateur)\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'Le PDF du contrat signé a été téléchargé par le client.\n\n' +
-    'Cordialement,\n' + (c.nom||'Le client');
-
-  window.location.href = 'mailto:tremblaymrs@gmail.com' +
-    '?subject=' + encodeURIComponent(sujet) +
-    '&body=' + encodeURIComponent(corps);
+function afficherErreur(msg) {
+  document.getElementById('ecran-chargement').style.display = 'none';
+  document.getElementById('erreur-msg').textContent = msg + '\nContactez Entretien C-Net pour un nouveau lien.';
+  document.getElementById('erreur-tel').textContent = BRANDING.tel;
+  document.getElementById('ecran-erreur').style.display = 'block';
 }
 </script>
 </body>
