@@ -79,13 +79,22 @@ canvas{display:block;width:100%;height:160px;cursor:crosshair;touch-action:none}
 <script>
 // ── LIRE LES DONNÉES DU LIEN ────────────────────────────────────────────────
 function getParam(name) {
+  // Utiliser URLSearchParams si disponible (plus fiable)
+  try {
+    var usp = new URLSearchParams(window.location.search);
+    if (usp.has(name)) return usp.get(name);
+  } catch(e) {}
+  // Fallback manuel — garde le base64 intact (ne remplace pas les +)
   var search = window.location.search || window.location.href.split('?')[1] || '';
   if (search.charAt(0) === '?') search = search.slice(1);
   var pairs = search.split('&');
   for (var i = 0; i < pairs.length; i++) {
-    var pair = pairs[i].split('=');
-    if (decodeURIComponent(pair[0]) === name) {
-      return pair[1] ? decodeURIComponent(pair[1].replace(/\+/g,' ')) : '';
+    var eqIdx = pairs[i].indexOf('=');
+    if (eqIdx === -1) continue;
+    var key = decodeURIComponent(pairs[i].slice(0, eqIdx));
+    if (key === name) {
+      // Ne PAS remplacer + par espace — le base64 utilise + comme caractère valide
+      return pairs[i].slice(eqIdx + 1);
     }
   }
   return null;
@@ -838,7 +847,7 @@ function envoyerConfirmation() {
   var modalLabel = (c.modalitePaiement==='1v') ? '1 versement unique' : '3 versements';
   var dateStr = new Date().toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'});
 
-  // Construire le lien de confirmation magique
+  // Données de confirmation encodées pour le lien magique local
   var confirmData = {
     num: c.num||'',
     nom: c.nom||'',
@@ -852,33 +861,36 @@ function envoyerConfirmation() {
     contratNum: c.num||''
   };
   var confirmEncode = btoa(unescape(encodeURIComponent(JSON.stringify(confirmData))));
-  // Lien magique — détecte dynamiquement le chemin de suivi-clients-cnet.html
-  var baseUrl = window.location.href.replace(/signature-cnet\.html.*$/, 'suivi-clients-cnet.html');
-  var lienConfirm = baseUrl + '?confirmsig=' + confirmEncode;
+  // Lien local pour Jeff (fonctionne quand il ouvre suivi-clients depuis son bureau)
+  var lienLocal = 'suivi-clients-cnet.html?confirmsig=' + confirmEncode;
 
-  var sujet = '✅ Contrat signé — ' + (c.num||'') + ' — ' + (c.nom||'');
+  var sujet = '✅ ' + (c.nom||'') + ' a signé — ' + (c.num||'');
   var corps =
     'Bonjour Jeff & Dereck,\n\n' +
-    '✅ ' + (c.nom||'') + ' a signé le contrat ' + (c.num||'') + ' le ' + dateStr + '.\n\n' +
+    '✅ ' + (c.nom||'') + ' a signé le contrat ' + (c.num||'') + ' le ' + dateStr + '.\n' +
+    'Le PDF signé a été téléchargé automatiquement par le client.\n\n' +
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'DÉTAILS DU CONTRAT :\n' +
+    'DÉTAILS :\n' +
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    '• Contrat : ' + (c.num||'') + '\n' +
-    '• Client : ' + (c.nom||'') + '\n' +
-    '• Mode de paiement : ' + modeLabel + '\n' +
-    '• Versements : ' + modalLabel + '\n' +
-    '• Total (taxes incluses) : ' + fmt2(tot) + ' $\n\n' +
+    '• Contrat  : ' + (c.num||'') + '\n' +
+    '• Client   : ' + (c.nom||'') + '\n' +
+    '• Tél      : ' + (c.tel||'') + '\n' +
+    '• Adresse  : ' + (c.adresse||'') + '\n' +
+    '• Paiement : ' + modeLabel + ' — ' + modalLabel + '\n' +
+    '• Total    : ' + fmt2(tot) + ' $ (taxes incl.)\n\n' +
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'ACTION REQUISE — CONFIRMER DANS VOTRE SYSTÈME :\n' +
+    'POUR CONFIRMER DANS VOTRE SYSTÈME :\n' +
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
-    'Copiez ce lien et collez-le dans votre navigateur\n' +
-    'pour confirmer la signature dans le suivi clients :\n\n' +
-    lienConfirm + '\n\n' +
-    '(Ouvrez ce fichier sur votre ordinateur, puis collez\n' +
-    'le lien ci-dessus dans la barre d\'adresse du navigateur)\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'Le PDF du contrat signé a été téléchargé par le client.\n\n' +
-    'Cordialement,\n' + (c.nom||'Le client');
+    'OPTION A (automatique) :\n' +
+    '1. Ouvre le fichier suivi-clients-cnet.html sur ton bureau\n' +
+    '2. Dans la barre d\'adresse du navigateur, remplace la fin de l\'URL par :\n' +
+    '   suivi-clients-cnet.html?confirmsig=' + confirmEncode + '\n' +
+    '3. Appuie sur Entrée — la confirmation se fait automatiquement\n\n' +
+    'OPTION B (manuelle) :\n' +
+    '1. Ouvre suivi-clients-cnet.html\n' +
+    '2. Cherche le contrat ' + (c.num||'') + ' — ' + (c.nom||'') + '\n' +
+    '3. Clique sur le bouton ✉️ « Confirmation reçue »\n\n' +
+    'Cordialement,\n' + (c.nom||'Le client') + ' (via système C-Net)';
 
   window.location.href = 'mailto:tremblaymrs@gmail.com' +
     '?subject=' + encodeURIComponent(sujet) +
